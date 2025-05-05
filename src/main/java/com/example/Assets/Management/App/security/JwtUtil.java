@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 @Component
 public class JwtUtil {
-    private final String jwtSecret = "your_jwt_secret_key";
+    private final String jwtSecret = "asdfgvhgvgkhafjhcaaaaaaaaaaaabbbbbbbbdjhhheeeeeeeeeeejjjjjjjjjjjkkkkkkkkkkkkkkkkkssssssssssskaaaaaaaaaaaaaaaaaaaaaaadddddddasdhbauhegfahdcbsjdvaghsdvaskjhsvgvrysecretkeysdscscscscscscscscscscscscscscscsdccccccccccccccccccccccccccccccccccccccccrfbfdgndfgsdgnnnnnnfsngsgnsgnsdljkfvbahvbjkdfbjasdhfajkldvbjhfbhsdbfvdfhlvafbvahldbfgvfhhadfbadrhbjkvndfkjnvjatgiah";
     private final long jwtExpirationMs = 86400000; // 1 day
 
     public String generateToken(String username) {

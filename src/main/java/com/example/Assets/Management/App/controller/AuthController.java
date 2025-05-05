@@ -1,5 +1,6 @@
 package com.example.Assets.Management.App.controller;
 
+import com.example.Assets.Management.App.Enums.Role;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.security.JwtUtil;
@@ -30,7 +31,7 @@ public class AuthController {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        if (user.getRole() == null) user.setRole("ROLE_USER");
+        if (user.getRole() == null) user.setRole(Role.USER);
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
@@ -43,6 +44,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
+        System.err.println("loginData: " + loginData);
         try {
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

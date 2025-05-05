@@ -1,8 +1,11 @@
 // src/main/java/com/example/assetmanagement/model/User.java
 package com.example.Assets.Management.App.model;
 
+import com.example.Assets.Management.App.Enums.Role;
+
 import jakarta.persistence.*;
 import lombok.*;
+
 
 @Entity
 @Data
@@ -16,6 +19,6 @@ public class Users {
     @Column(unique = true)
     private String email;
     private String password;
-    private String role; // "ROLE_ADMIN", "ROLE_USER"
+    private Role role; // "ROLE_ADMIN", "ROLE_USER"
     private String mobileNumber;
 }
