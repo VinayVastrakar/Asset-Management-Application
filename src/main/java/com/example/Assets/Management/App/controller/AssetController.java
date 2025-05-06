@@ -1,12 +1,18 @@
 package com.example.Assets.Management.App.controller;
 
+import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.service.AssetService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
+
 
 import java.util.List;
 
@@ -15,9 +21,11 @@ import java.util.List;
 public class AssetController {
 
     private final AssetService assetService;
+    private final AssetRepository assetRepository;
 
-    public AssetController(AssetService assetService) {
+    public AssetController(AssetService assetService,AssetRepository assetRepository) {
         this.assetService = assetService;
+        this.assetRepository = assetRepository;
     }
 
     @GetMapping
@@ -44,5 +52,15 @@ public class AssetController {
     public ResponseEntity<Void> deleteAsset(@PathVariable Long id) {
         assetService.deleteAsset(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/upload-image")
+    public ResponseEntity<?> uploadAssetImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        String imageUrl = assetService.uploadAssetImage(file);
+        // Optionally update asset's imageUrl in DB
+        Asset asset = assetRepository.findById(id).get();
+        asset.setImageUrl(imageUrl);
+        assetRepository.save(asset); // or assetService.updateAsset(id, asset)
+        return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
     }
 }
