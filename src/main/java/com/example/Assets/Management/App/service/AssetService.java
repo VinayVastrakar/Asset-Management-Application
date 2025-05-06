@@ -25,8 +25,10 @@ public class AssetService {
         return assetRepository.findAll();   
     }
 
-    public Optional<Asset> getAssetById(Long id) {
-        return assetRepository.findById(id);
+    public AssetResponseDTO getAssetById(Long id) {
+        Asset asset = assetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Asset not found"));
+        return assetMapper.toResponseDTO(asset);
     }
 
     public AssetResponseDTO createAsset(AssetRequestDTO assetRequestDTO) {

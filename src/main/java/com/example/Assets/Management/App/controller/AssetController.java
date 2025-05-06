@@ -5,6 +5,7 @@ import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.service.AssetService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +26,8 @@ public class AssetController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Asset> getAssetById(@PathVariable Long id) {
-        return assetService.getAssetById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<AssetResponseDTO> getAssetById(@PathVariable Long id) {
+        return new ResponseEntity<>(assetService.getAssetById(id), HttpStatus.OK);
     }
 
     @PostMapping
