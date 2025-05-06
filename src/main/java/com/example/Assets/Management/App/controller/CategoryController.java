@@ -4,6 +4,8 @@ import com.example.Assets.Management.App.model.Category;
 import com.example.Assets.Management.App.service.CategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.Assets.Management.App.dto.requestDto.CategoryRequestDTO;
+
 
 import java.util.List;
 
@@ -29,12 +31,12 @@ public class CategoryController {
     }
 
     @PostMapping
-    public Category createCategory(@RequestBody Category category) {
+    public Category createCategory(@RequestBody CategoryRequestDTO category) {
         return categoryService.createCategory(category);
     }
 
     @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable Long id, @RequestBody Category category) {
+    public Category updateCategory(@PathVariable Long id, @RequestBody CategoryRequestDTO category) {
         return categoryService.updateCategory(id, category);
     }
 
