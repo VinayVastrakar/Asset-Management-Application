@@ -3,8 +3,11 @@ package com.example.Assets.Management.App.scheduler;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.service.EmailService;
+import com.example.Assets.Management.App.service.SmsService;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,10 +16,12 @@ import java.util.List;
 public class ExpiryNotificationScheduler {
     private final AssetRepository assetRepository;
     private final EmailService emailService;
+    private final SmsService smsService;
 
-    public ExpiryNotificationScheduler(AssetRepository assetRepository, EmailService emailService) {
+    public ExpiryNotificationScheduler(AssetRepository assetRepository, EmailService emailService,SmsService smsService) {
         this.assetRepository = assetRepository;
         this.emailService = emailService;
+        this.smsService = smsService;
     }
 
     // Runs every day at midnight
@@ -31,6 +36,7 @@ public class ExpiryNotificationScheduler {
             String userEmail = asset.getAssignedToUser().getEmail();
             String subject = "Asset Expiry Alert: " + asset.getName();
             String text = "The asset '" + asset.getName() + "' is expiring on " + asset.getExpiryDate();
+            String mobileNumber = asset.getAssignedToUser().getMobileNumber();
             emailService.sendEmail(userEmail, subject, text);
 
             // Send to admin
@@ -39,6 +45,8 @@ public class ExpiryNotificationScheduler {
             // String adminText = "The asset '" + asset.getName() + "' assigned to " + 
             //                  asset.getAssignedToUser().getName() + " is expiring on " + asset.getExpiryDate();
             // emailService.sendEmail(adminEmail, adminSubject, adminText);
+
+            smsService.sendSms(mobileNumber, text);
         }
     }
 }
