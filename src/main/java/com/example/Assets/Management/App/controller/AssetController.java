@@ -1,5 +1,7 @@
 package com.example.Assets.Management.App.controller;
 
+import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
+import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.service.AssetService;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +32,13 @@ public class AssetController {
     }
 
     @PostMapping
-    public Asset createAsset(@RequestBody Asset asset) {
-        return assetService.createAsset(asset);
+    public AssetResponseDTO createAsset(@RequestBody AssetRequestDTO assetRequestDTO) {
+        return assetService.createAsset(assetRequestDTO);
     }
 
     @PutMapping("/{id}")
-    public Asset updateAsset(@PathVariable Long id, @RequestBody Asset asset) {
-        return assetService.updateAsset(id, asset);
+    public AssetResponseDTO updateAsset(@PathVariable Long id, @RequestBody AssetRequestDTO assetRequestDTO) {
+        return assetService.updateAsset(id, assetRequestDTO);
     }
 
     @DeleteMapping("/{id}")

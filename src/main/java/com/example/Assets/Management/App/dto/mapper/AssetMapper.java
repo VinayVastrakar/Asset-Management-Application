@@ -6,12 +6,15 @@ import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.service.CategoryService;
 import com.example.Assets.Management.App.service.UserService;
 
-public class AccetMapper {
+import org.springframework.stereotype.Component;
+
+@Component
+public class AssetMapper {
 
     private final CategoryService categoryService;
     private final UserService userService;
 
-    public AccetMapper(CategoryService categoryService, UserService userService) {
+    public AssetMapper(CategoryService categoryService, UserService userService) {
         this.categoryService = categoryService;
         this.userService = userService;
     }   
