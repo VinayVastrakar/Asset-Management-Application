@@ -9,6 +9,9 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.*;
 
@@ -65,4 +68,21 @@ public class AuthController {
             "user", Map.of("id", user.getId(), "email", user.getEmail(), "name", user.getName(), "role", user.getRole())
         );
     }
+
+    @GetMapping("/user")
+    public Map<String, Object> getUserDetails(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+
+        // Now fetch your own Users entity from the database
+        Users users = userRepository.findByEmail(username).orElseThrow(() -> new RuntimeException("User not found")); // Make sure this method exists
+
+        return Map.of(
+            "id", users.getId(),
+            "email", users.getEmail(),
+            "name", users.getName(),
+            "role", users.getRole()
+        );
+    }
+
 }
