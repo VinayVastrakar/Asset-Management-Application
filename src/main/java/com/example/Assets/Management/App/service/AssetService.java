@@ -1,6 +1,8 @@
 package com.example.Assets.Management.App.service;
 
 import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.model.Category;
+import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,12 @@ public class AssetService {
 
     @Autowired
     private Cloudinary cloudinary;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     public AssetService(AssetRepository assetRepository, AssetMapper assetMapper) {
         this.assetRepository = assetRepository;
@@ -57,6 +65,23 @@ public class AssetService {
 
     public void deleteAsset(Long id) {
         assetRepository.deleteById(id);
+    }
+
+    public List<AssetResponseDTO> getAssetsByUser(Long userId) {
+        Users user = userService.getUserById(userId);
+        List<Asset> assets = assetRepository.findByAssignedToUser(user);
+        return assets.stream()
+                .map(assetMapper::toResponseDTO)
+                .toList();
+    }
+
+    public List<AssetResponseDTO> getAssetsByCategory(Long categoryId) {
+        Category category = categoryService.getCategoryById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        List<Asset> assets = assetRepository.findByCategory(category);
+        return assets.stream()
+                .map(assetMapper::toResponseDTO)
+                .toList();
     }
 
     public String uploadAssetImage(MultipartFile file){

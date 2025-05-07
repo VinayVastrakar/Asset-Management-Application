@@ -54,6 +54,16 @@ public class AssetController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<AssetResponseDTO>> getAssetsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(assetService.getAssetsByUser(userId));
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<AssetResponseDTO>> getAssetsByCategory(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(assetService.getAssetsByCategory(categoryId));
+    }
+
     @PutMapping("/{id}/upload-image")
     public ResponseEntity<?> uploadAssetImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         String imageUrl = assetService.uploadAssetImage(file);
