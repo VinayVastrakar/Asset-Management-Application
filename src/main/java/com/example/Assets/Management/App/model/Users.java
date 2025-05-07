@@ -19,6 +19,8 @@ public class Users {
     @Column(unique = true)
     private String email;
     private String password;
-    private Role role; // "ROLE_ADMIN", "ROLE_USER"
+
+    @Enumerated(EnumType.STRING)
+    private Role role; // "ADMIN", "USER"
     private String mobileNumber;
 }
