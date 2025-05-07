@@ -4,6 +4,7 @@ import com.example.Assets.Management.App.Enums.Role;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.security.JwtUtil;
+import com.example.Assets.Management.App.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,8 @@ public class AuthController {
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private OtpService otpService;
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -83,6 +86,39 @@ public class AuthController {
             "name", users.getName(),
             "role", users.getRole()
         );
+    }
+
+    @PostMapping("/forgot-password")
+    public Map<String, String> forgotPassword(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+
+        if (userRepository.findByEmail(email).isEmpty()) {
+            return Map.of("error", "User not found");
+        }
+
+        String otp = otpService.generateOtp(email);
+        // sendOtpToEmailOrSms(email, otp);
+        System.out.println(otp);
+        return Map.of("message", "OTP sent to your email");
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, String> resetPassword(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String otp = payload.get("otp");
+        String newPassword = payload.get("newPassword");
+
+        if (!otpService.validateOtp(email, otp)) {
+            return Map.of("error", "Invalid or expired OTP");
+        }
+
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        return Map.of("message", "Password has been reset successfully");
     }
 
 }
