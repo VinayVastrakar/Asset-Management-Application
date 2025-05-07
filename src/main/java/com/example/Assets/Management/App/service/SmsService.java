@@ -11,13 +11,13 @@ public class SmsService {
 
     public SmsService(TwilioConfig twilioConfig) {
         this.twilioConfig = twilioConfig;
-        Twilio.init(twilioConfig.accountSid, twilioConfig.authToken);
+        Twilio.init(twilioConfig.getAccountSid(), twilioConfig.getAuthToken());
     }
 
     public void sendSms(String to, String body) {
         Message.creator(
                 new com.twilio.type.PhoneNumber(to),
-                new com.twilio.type.PhoneNumber(twilioConfig.fromNumber),
+                new com.twilio.type.PhoneNumber(twilioConfig.getFromNumber()),
                 body
         ).create();
     }

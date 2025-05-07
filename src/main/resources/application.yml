@@ -25,7 +25,3 @@ spring:
           auth: true
           starttls:
             enable: true
-twilio:
-  account-sid: YOUR_TWILIO_ACCOUNT_SID
-  auth-token: YOUR_TWILIO_AUTH_TOKEN
-  from-number: "+1XXXXXXXXXX" # Your Twilio phone number
