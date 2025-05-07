@@ -12,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.http.HttpMethod;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 public class SecurityConfig {
@@ -30,16 +31,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/auth/**", "/swagger-ui/**","/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                // Admin can access everything
-                .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PATCH, "/api/**").hasRole("ADMIN")
-                // Users can only perform GET requests
-                .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/api/auth/**","/swagger-ui/**","/v3/api-docs/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers("/api/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exception -> exception
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("You are not authorized to perform this action");
+                })
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
