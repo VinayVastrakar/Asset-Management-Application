@@ -1,13 +1,11 @@
 package com.example.Assets.Management.App.service;
 
-import com.example.Assets.Management.App.model.OtpToken;
 import com.example.Assets.Management.App.repository.OtpTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class OtpCleanupService {

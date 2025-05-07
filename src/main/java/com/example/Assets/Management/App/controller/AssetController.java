@@ -1,6 +1,5 @@
 package com.example.Assets.Management.App.controller;
 
-import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
@@ -8,7 +7,6 @@ import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.service.AssetService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;

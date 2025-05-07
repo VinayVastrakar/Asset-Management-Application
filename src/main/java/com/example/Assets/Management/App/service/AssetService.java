@@ -16,9 +16,7 @@ import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import javax.management.RuntimeErrorException;
 
 @Service
 public class AssetService {
