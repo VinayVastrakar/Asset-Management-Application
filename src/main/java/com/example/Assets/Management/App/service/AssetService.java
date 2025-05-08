@@ -13,10 +13,7 @@ import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.cloudinary.Cloudinary;
 import com.example.Assets.Management.App.dto.mapper.AssetMapper;
-
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 @Service
 public class AssetService {
@@ -39,7 +36,7 @@ public class AssetService {
     }
 
     public List<Asset> getAllAssets() {
-        return assetRepository.findAll();   
+        return assetRepository.findAll();
     }
 
     public AssetResponseDTO getAssetById(Long id) {
@@ -84,22 +81,23 @@ public class AssetService {
 
     public Map<String, String> uploadAssetImage(MultipartFile file, Asset asset) {
         try {
-            // Delete old image if it exists
+            // If the asset has an existing image, overwrite it
+            Map<String, Object> uploadOptions = new HashMap<>();
             if (asset.getImagePublicId() != null) {
-                cloudinary.uploader().destroy(asset.getImagePublicId(), Map.of());
+                uploadOptions.put("public_id", asset.getImagePublicId());
+                uploadOptions.put("overwrite", true);
+                uploadOptions.put("invalidate", true); // optional: invalidate CDN cache
             }
 
-            // Upload new image
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), Map.of());
+            // Upload image (will overwrite if public_id exists)
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadOptions);
 
             String imageUrl = uploadResult.get("secure_url").toString();
             String publicId = uploadResult.get("public_id").toString();
 
-            // Return both values in a map
             return Map.of(
                     "imageUrl", imageUrl,
-                    "publicId", publicId
-            );
+                    "publicId", publicId);
 
         } catch (Exception e) {
             throw new RuntimeException("Image upload failed", e);
