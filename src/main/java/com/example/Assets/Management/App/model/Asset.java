@@ -22,6 +22,7 @@ public class Asset {
     private LocalDate purchaseDate;
     private LocalDate expiryDate;
     private String imageUrl;
+    private String imagePublicId;
     private Integer warrantyPeriod; // in months
     private String status; // e.g., "active", "assigned", "retired"
 

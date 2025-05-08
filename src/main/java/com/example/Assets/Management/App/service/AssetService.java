@@ -82,13 +82,28 @@ public class AssetService {
                 .toList();
     }
 
-    public String uploadAssetImage(MultipartFile file){
+    public Map<String, String> uploadAssetImage(MultipartFile file, Asset asset) {
         try {
+            // Delete old image if it exists
+            if (asset.getImagePublicId() != null) {
+                cloudinary.uploader().destroy(asset.getImagePublicId(), Map.of());
+            }
+
+            // Upload new image
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), Map.of());
-            return uploadResult.get("secure_url").toString();
+
+            String imageUrl = uploadResult.get("secure_url").toString();
+            String publicId = uploadResult.get("public_id").toString();
+
+            // Return both values in a map
+            return Map.of(
+                    "imageUrl", imageUrl,
+                    "publicId", publicId
+            );
+
         } catch (Exception e) {
-            // e.printStackTrace();
             throw new RuntimeException("Image upload failed", e);
         }
     }
+
 }
