@@ -52,7 +52,7 @@ public class AuthController {
     
         // Send welcome email and SMS
         emailService.sendWelcomeEmail(user.getEmail(), user.getName(), user.getRole());
-        smsService.sendWelcomeSms(user.getMobileNumber(), user.getName(), user.getRole()); // Ensure phone field exists in Users
+        // smsService.sendWelcomeSms(user.getMobileNumber(), user.getName(), user.getRole()); // Ensure phone field exists in Users
     
         String token = jwtUtil.generateToken(user.getEmail());
     
