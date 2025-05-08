@@ -4,7 +4,10 @@ import com.example.Assets.Management.App.Enums.Role;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.security.JwtUtil;
+import com.example.Assets.Management.App.service.EmailService;
 import com.example.Assets.Management.App.service.OtpService;
+import com.example.Assets.Management.App.service.SmsService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+
 
 import java.util.*;
 
@@ -26,6 +30,13 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private OtpService otpService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -34,13 +45,17 @@ public class AuthController {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return Map.of("error", "User with this email already exists.");
         }
-
+    
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getRole() == null) user.setRole(Role.USER);
         userRepository.save(user);
-
+    
+        // Send welcome email and SMS
+        emailService.sendWelcomeEmail(user.getEmail(), user.getName(), user.getRole());
+        smsService.sendWelcomeSms(user.getMobileNumber(), user.getName(), user.getRole()); // Ensure phone field exists in Users
+    
         String token = jwtUtil.generateToken(user.getEmail());
-
+    
         return Map.of(
             "token", token,
             "user", Map.of("id", user.getId(), "email", user.getEmail(), "name", user.getName(), "role", user.getRole())
