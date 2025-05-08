@@ -8,6 +8,10 @@ import com.example.Assets.Management.App.service.EmailService;
 import com.example.Assets.Management.App.service.OtpService;
 import com.example.Assets.Management.App.service.SmsService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +25,8 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth", description = "Auth APIs")
+@SecurityRequirement(name = "bearerAuth")
 public class AuthController {
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -41,6 +47,7 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/register")
+    @Operation(summary = "User Registeration")
     public Map<String, Object> register(@RequestBody Users user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             return Map.of("error", "User with this email already exists.");
@@ -63,6 +70,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "User Login")
     public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
         System.err.println("loginData: " + loginData);
         try {
@@ -87,6 +95,7 @@ public class AuthController {
     }
 
     @GetMapping("/user")
+    @Operation(summary = "Get User With AuthKey")
     public Map<String, Object> getUserDetails(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
@@ -103,6 +112,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
+    @Operation(summary = "Forget Password")
     public Map<String, String> forgotPassword(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
 
@@ -117,6 +127,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
+    @Operation(summary = "Reset User Password")
     public Map<String, String> resetPassword(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
         String otp = payload.get("otp");
