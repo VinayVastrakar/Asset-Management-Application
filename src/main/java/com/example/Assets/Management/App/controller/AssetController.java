@@ -17,9 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
-
-
+import java.util.HashMap;
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/assets")
@@ -30,11 +30,14 @@ public class AssetController {
     private final AssetService assetService;
     private final AssetRepository assetRepository;
     private final AssetMapper assetMapper;
+    private final ObjectMapper objectMapper; 
 
-    public AssetController(AssetService assetService,AssetRepository assetRepository,AssetMapper assetMapper) {
+
+    public AssetController(AssetService assetService,AssetRepository assetRepository,AssetMapper assetMapper,ObjectMapper objectMapper) {
         this.assetService = assetService;
         this.assetRepository = assetRepository;
         this.assetMapper = assetMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Operation(summary = "Get all assets")
@@ -52,24 +55,43 @@ public class AssetController {
     @Operation(summary = "Create new asset")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssetResponseDTO> createAssetWithImage(
-            @RequestPart("asset") AssetRequestDTO assetRequestDTO,
+            @RequestPart("asset") String assetJson,
             @RequestPart(value = "file", required = false) MultipartFile file) {
 
-        // Convert DTO to entity
-        Asset asset = assetMapper.toEntity(assetRequestDTO);
+        try {
+            // Convert JSON string to DTO
+            AssetRequestDTO assetRequestDTO = objectMapper.readValue(assetJson, AssetRequestDTO.class);
 
-        // If file is provided, upload image and set image data
-        if (file != null && !file.isEmpty()) {
-            Map<String, String> uploadResult = assetService.uploadAssetImage(file, asset);
-            asset.setImageUrl(uploadResult.get("imageUrl"));
-            asset.setImagePublicId(uploadResult.get("publicId"));
+            // Convert DTO to entity
+            Asset asset = assetMapper.toEntity(assetRequestDTO);
+
+            // If file is provided, upload image and set image data
+            if (file != null && !file.isEmpty()) {
+                Map<String, String> uploadResult = assetService.uploadAssetImage(file, asset);
+                asset.setImageUrl(uploadResult.get("imageUrl"));
+                asset.setImagePublicId(uploadResult.get("publicId"));
+            }
+
+            // Save the asset with or without image
+            Asset savedAsset = assetRepository.save(asset);
+
+            return ResponseEntity.ok(assetMapper.toResponseDTO(savedAsset));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
-
-        // Save the asset with or without image
-        Asset savedAsset = assetRepository.save(asset);
-
-        return ResponseEntity.ok(assetMapper.toResponseDTO(savedAsset));
     }
+
+    @PostMapping("/test-json")
+    public ResponseEntity<?> testJson(@RequestBody String json) {
+        try {
+            AssetRequestDTO dto = objectMapper.readValue(json, AssetRequestDTO.class);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body("Error: " + e.getMessage());
+        }
+    }
+
 
     @Operation(summary = "Update asset by asset_id")
     @PutMapping("/{id}")
