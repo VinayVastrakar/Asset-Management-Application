@@ -58,8 +58,15 @@ public class AuthController {
         userRepository.save(user);
     
         // Send welcome email and SMS
-        emailService.sendWelcomeEmail(user.getEmail(), user.getName(), user.getRole());
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getName(), user.getRole());
         // smsService.sendWelcomeSms(user.getMobileNumber(), user.getName(), user.getRole()); // Ensure phone field exists in Users
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            System.out.println("Some Issue on mail service");
+        }
+        
     
         String token = jwtUtil.generateToken(user.getEmail());
     
