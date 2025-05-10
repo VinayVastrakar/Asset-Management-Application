@@ -28,4 +28,7 @@ public class Asset {
 
     @ManyToOne
     private Users assignedToUser;
+
+    @ManyToOne
+    private Users lastModifiedBy;
 }

@@ -4,6 +4,7 @@ import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.model.Category;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
+import com.example.Assets.Management.App.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.*;
 @Service
 public class AssetService {
     private final AssetRepository assetRepository;
+    private final UserRepository userRepository;
 
     private final AssetMapper assetMapper;
 
@@ -30,8 +32,9 @@ public class AssetService {
     @Autowired
     private CategoryService categoryService;
 
-    public AssetService(AssetRepository assetRepository, AssetMapper assetMapper) {
+    public AssetService(AssetRepository assetRepository, UserRepository userRepository, AssetMapper assetMapper) {
         this.assetRepository = assetRepository;
+        this.userRepository = userRepository;
         this.assetMapper = assetMapper;
     }
 
@@ -102,6 +105,32 @@ public class AssetService {
         } catch (Exception e) {
             throw new RuntimeException("Image upload failed", e);
         }
+    }
+
+    public AssetResponseDTO returnAsset(Long assetId, String modifiedBy) {
+        Asset asset = assetRepository.findById(assetId)
+            .orElseThrow(() -> new RuntimeException("Asset not found"));
+        Users changeBy = userRepository.findByEmail(modifiedBy).get();
+        asset.setAssignedToUser(null);
+        asset.setStatus("AVAILABLE");
+        System.out.println(modifiedBy);
+        asset.setLastModifiedBy(changeBy);
+        assetRepository.save(asset);
+        return assetMapper.toResponseDTO(asset);
+    }
+
+    public AssetResponseDTO reassignAsset(Long assetId, Long newUserId, String modifiedBy) {
+        Asset asset = assetRepository.findById(assetId)
+            .orElseThrow(() -> new RuntimeException("Asset not found"));
+        Users newUser = userRepository.findById(newUserId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        Users changeBy = userRepository.findByEmail(modifiedBy).get();
+        asset.setAssignedToUser(newUser);
+        asset.setStatus("ASSIGNED");
+        System.out.println(modifiedBy);
+        asset.setLastModifiedBy(changeBy);
+        assetRepository.save(asset);
+        return assetMapper.toResponseDTO(asset);
     }
 
 }

@@ -17,9 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/assets")
@@ -133,5 +133,26 @@ public class AssetController {
         assetRepository.save(asset);
 
         return ResponseEntity.ok(Map.of("imageUrl", uploadResult.get("imageUrl")));
+    }
+
+    @Operation(summary = "Reassign asset to another user")
+    @PutMapping("/{id}/reassign")
+    public ResponseEntity<AssetResponseDTO> reassignAsset(
+            @PathVariable Long id,
+            @RequestParam Long newUserId,
+            Authentication authentication) {
+        String username = authentication.getName();
+        AssetResponseDTO response = assetService.reassignAsset(id, newUserId, username);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Return asset (make available)")
+    @PutMapping("/{id}/return")
+    public ResponseEntity<AssetResponseDTO> returnAsset(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String username = authentication.getName();
+        AssetResponseDTO response = assetService.returnAsset(id, username);
+        return ResponseEntity.ok(response);
     }
 }
