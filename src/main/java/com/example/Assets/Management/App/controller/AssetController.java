@@ -42,7 +42,7 @@ public class AssetController {
 
     @Operation(summary = "Get all assets")
     @GetMapping
-    public List<Asset> getAllAssets() {
+    public List<AssetResponseDTO> getAllAssets() {
         return assetService.getAllAssets();
     }
 

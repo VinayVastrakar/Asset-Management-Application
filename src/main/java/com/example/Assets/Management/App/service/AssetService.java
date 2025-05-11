@@ -38,8 +38,9 @@ public class AssetService {
         this.assetMapper = assetMapper;
     }
 
-    public List<Asset> getAllAssets() {
-        return assetRepository.findAll();
+    public List<AssetResponseDTO> getAllAssets() {
+        List<AssetResponseDTO> assetResponseDTOList = assetRepository.findAll().stream().map(assetMapper::toResponseDTO).toList();
+        return assetResponseDTOList;
     }
 
     public AssetResponseDTO getAssetById(Long id) {
