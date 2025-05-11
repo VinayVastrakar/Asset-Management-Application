@@ -1,8 +1,10 @@
 package com.example.Assets.Management.App.service;
 
 import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.model.AssetAssignmentHistory;
 import com.example.Assets.Management.App.model.Category;
 import com.example.Assets.Management.App.model.Users;
+import com.example.Assets.Management.App.repository.AssetAssignmentHistoryRepository;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 
@@ -14,14 +16,19 @@ import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.cloudinary.Cloudinary;
 import com.example.Assets.Management.App.dto.mapper.AssetMapper;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class AssetService {
-    private final AssetRepository assetRepository;
-    private final UserRepository userRepository;
-
-    private final AssetMapper assetMapper;
+    
+    @Autowired
+    private AssetRepository assetRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private AssetMapper assetMapper;
 
     @Autowired
     private Cloudinary cloudinary;
@@ -32,11 +39,8 @@ public class AssetService {
     @Autowired
     private CategoryService categoryService;
 
-    public AssetService(AssetRepository assetRepository, UserRepository userRepository, AssetMapper assetMapper) {
-        this.assetRepository = assetRepository;
-        this.userRepository = userRepository;
-        this.assetMapper = assetMapper;
-    }
+    @Autowired
+    private AssetAssignmentHistoryRepository assignmentHistoryRepository;
 
     public List<AssetResponseDTO> getAllAssets() {
         List<AssetResponseDTO> assetResponseDTOList = assetRepository.findAll().stream().map(assetMapper::toResponseDTO).toList();
@@ -111,12 +115,26 @@ public class AssetService {
     public AssetResponseDTO returnAsset(Long assetId, String modifiedBy) {
         Asset asset = assetRepository.findById(assetId)
             .orElseThrow(() -> new RuntimeException("Asset not found"));
-        Users changeBy = userRepository.findByEmail(modifiedBy).get();
+        Users changeBy = userRepository.findByEmail(modifiedBy).orElseThrow();
+        Users previousUser = asset.getAssignedToUser();
+    
         asset.setAssignedToUser(null);
         asset.setStatus("AVAILABLE");
-        System.out.println(modifiedBy);
         asset.setLastModifiedBy(changeBy);
         assetRepository.save(asset);
+    
+        // Save return history
+        if (previousUser != null) {
+            AssetAssignmentHistory history = AssetAssignmentHistory.builder()
+                .asset(asset)
+                .assignedUser(previousUser)
+                .changedBy(changeBy)
+                .assignmentDate(LocalDateTime.now())
+                .status("RETURNED")
+                .build();
+            assignmentHistoryRepository.save(history);
+        }
+    
         return assetMapper.toResponseDTO(asset);
     }
 
@@ -125,13 +143,25 @@ public class AssetService {
             .orElseThrow(() -> new RuntimeException("Asset not found"));
         Users newUser = userRepository.findById(newUserId)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        Users changeBy = userRepository.findByEmail(modifiedBy).get();
+        Users changeBy = userRepository.findByEmail(modifiedBy).orElseThrow();
+    
         asset.setAssignedToUser(newUser);
         asset.setStatus("ASSIGNED");
-        System.out.println(modifiedBy);
         asset.setLastModifiedBy(changeBy);
         assetRepository.save(asset);
+    
+        // Save assignment history
+        AssetAssignmentHistory history = AssetAssignmentHistory.builder()
+            .asset(asset)
+            .assignedUser(newUser)
+            .changedBy(changeBy)
+            .assignmentDate(LocalDateTime.now())
+            .status("ASSIGNED")
+            .build();
+        assignmentHistoryRepository.save(history);
+    
         return assetMapper.toResponseDTO(asset);
     }
+    
 
 }

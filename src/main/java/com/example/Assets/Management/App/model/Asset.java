@@ -4,6 +4,7 @@ package com.example.Assets.Management.App.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.*;
 
 @Entity
 @Data
@@ -31,4 +32,7 @@ public class Asset {
 
     @ManyToOne
     private Users lastModifiedBy;
+
+    @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL)
+    private List<AssetAssignmentHistory> assignmentHistory = new ArrayList<>();
 }
