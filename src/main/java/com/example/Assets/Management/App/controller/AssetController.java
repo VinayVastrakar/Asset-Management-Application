@@ -4,7 +4,9 @@ import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
+import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.AssetService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,13 +33,15 @@ public class AssetController {
     private final AssetRepository assetRepository;
     private final AssetMapper assetMapper;
     private final ObjectMapper objectMapper; 
+    private final UserRepository userRepository;
 
 
-    public AssetController(AssetService assetService,AssetRepository assetRepository,AssetMapper assetMapper,ObjectMapper objectMapper) {
+    public AssetController(AssetService assetService,AssetRepository assetRepository,AssetMapper assetMapper,ObjectMapper objectMapper, UserRepository userRepository) {
         this.assetService = assetService;
         this.assetRepository = assetRepository;
         this.assetMapper = assetMapper;
         this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
     }
 
     @Operation(summary = "Get all assets")
@@ -56,7 +60,7 @@ public class AssetController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AssetResponseDTO> createAssetWithImage(
             @RequestPart("asset") String assetJson,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file, Authentication authentication) {
 
         try {
             // Convert JSON string to DTO
@@ -71,8 +75,9 @@ public class AssetController {
                 asset.setImageUrl(uploadResult.get("imageUrl"));
                 asset.setImagePublicId(uploadResult.get("publicId"));
             }
-
+            String changeby = authentication.getName();
             // Save the asset with or without image
+            asset.setLastModifiedBy(userRepository.findByEmail(changeby).get());
             Asset savedAsset = assetRepository.save(asset);
 
             return ResponseEntity.ok(assetMapper.toResponseDTO(savedAsset));
