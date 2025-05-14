@@ -86,18 +86,6 @@ public class AssetController {
         }
     }
 
-    @PostMapping("/test-json")
-    public ResponseEntity<?> testJson(@RequestBody String json) {
-        try {
-            AssetRequestDTO dto = objectMapper.readValue(json, AssetRequestDTO.class);
-            return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body("Error: " + e.getMessage());
-        }
-    }
-
-
     @Operation(summary = "Update asset by asset_id")
     @PutMapping("/{id}")
     public AssetResponseDTO updateAsset(@PathVariable Long id, @RequestBody AssetRequestDTO assetRequestDTO) {
