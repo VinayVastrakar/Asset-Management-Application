@@ -70,7 +70,7 @@ const Login: React.FC = () => {
       setLoginAttempts(newAttempts);
       
       if (newAttempts >= 5) {
-        const lockDuration = 5 * 60 * 1000; // 5 minutes
+        const lockDuration = 1 * 60 * 1000; // 1 minutes
         const lockedUntil = Date.now() + lockDuration;
         localStorage.setItem('loginLockedUntil', lockedUntil.toString());
         setIsLocked(true);
