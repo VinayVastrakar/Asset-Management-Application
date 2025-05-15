@@ -94,10 +94,17 @@ public class AuthController {
             .orElseThrow(() -> new RuntimeException("User not found"));
 
         String token = jwtUtil.generateToken(user.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
 
         return Map.of(
             "token", token,
-            "user", Map.of("id", user.getId(), "email", user.getEmail(), "name", user.getName(), "role", user.getRole())
+            "refreshToken", refreshToken,
+            "user", Map.of(
+                "id", user.getId(), 
+                "email", user.getEmail(), 
+                "name", user.getName(), 
+                "role", user.getRole()
+            )
         );
     }
 
@@ -153,4 +160,24 @@ public class AuthController {
         return Map.of("message", "Password has been reset successfully");
     }
 
+    @PostMapping("/refresh-token")
+    @Operation(summary = "Refresh JWT Token")
+    public Map<String, String> refreshToken(@RequestBody Map<String, String> payload) {
+        String refreshToken = payload.get("refreshToken");
+        
+        if (refreshToken == null || !jwtUtil.validateRefreshToken(refreshToken)) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+        
+        String email = jwtUtil.getUsernameFromToken(refreshToken);
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        String newToken = jwtUtil.generateToken(email);
+        
+        return Map.of(
+            "token", newToken,
+            "message", "Token refreshed successfully"
+        );
+    }
 }

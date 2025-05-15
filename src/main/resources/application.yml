@@ -33,3 +33,8 @@ spring:
   mvc:
     contentnegotiation:
       favor-parameter: true
+
+jwt:
+  secret: asdfgvhgvgkhafjhcaaaaaaaaaaaabbbbbbbbdjhhheeeeeeeeeeejjjjjjjjjjjkkkkkkkkkkkkkkkkkssssssssssskaaaaaaaaaaaaaaaaaaaaaaadddddddasdhbauhegfahdcbsjdvaghsdvaskjhsvgvrysecretkeysdscscscscscscscscscscscscscscscsdccccccccccccccccccccccccccccccccccccccccrfbfdgndfgsdgnnnnnnfsngsgnsgnsdljkfvbahvbjkdfbjasdhfajkldvbjhfbhsdbfvdfhlvafbvahldbfgvfhhadfbadrhbjkvndfkjnvjatgiah
+  expiration: 7200000
+  refresh-expiration: 86400000
