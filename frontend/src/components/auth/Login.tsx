@@ -36,7 +36,7 @@ const Login: React.FC = () => {
       }
     }
   }, [dispatch]);
-
+  // Lock Timer Countdown
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isLocked && lockTimer > 0) {

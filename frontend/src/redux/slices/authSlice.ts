@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import api from 'api/config';
 import axios from 'axios';
 
 interface User {
@@ -37,7 +38,7 @@ axios.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post('/api/auth/refresh-token', { refreshToken });
+        const response = await api.post('/auth/refresh-token', { refreshToken });
         const { token } = response.data;
         localStorage.setItem('token', token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -55,7 +56,7 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string; rememberMe?: boolean }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await api.post('/auth/login', credentials);
       const { token, refreshToken, user } = response.data;
       
       if (credentials.rememberMe) {
