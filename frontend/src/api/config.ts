@@ -1,18 +1,19 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 // Base URL configuration
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 // Create axios instance with default config
 const api: AxiosInstance = axios.create({
     baseURL: BASE_URL,
     headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
     },
     timeout: 20000, // 20 seconds
 });
 
-// Request interceptor
+// Request interceptor for API calls
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -39,4 +40,4 @@ api.interceptors.response.use(
     }
 );
 
-export default api; 
+export default api;
