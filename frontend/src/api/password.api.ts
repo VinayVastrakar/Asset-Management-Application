@@ -15,8 +15,8 @@ export const passwordApi = {
         api.post<ApiResponse<ForgotPasswordResponse>>('/api/auth/forgot-password', data),
 
     // Validate OTP
-    validateOTP: (data: ValidateOTPRequest) =>
-        api.post<ApiResponse<ValidateOTPResponse>>('/api/auth/validate-otp', data),
+    validateOTP: async (data: ValidateOTPRequest) =>
+        await api.post<ValidateOTPResponse>('/api/auth/validate-otp', data),
 
     // Reset password with OTP
     resetPassword: (data: ResetPasswordRequest) =>
@@ -24,5 +24,5 @@ export const passwordApi = {
 
     // Resend OTP
     resendOTP: (email: string) =>
-        api.post<ApiResponse<{ message: string }>>('/api/auth/resend-otp', { email }),
+        api.post<ApiResponse<{ message: string }>>('/api/auth/forgot-password', { email }),
 }; 

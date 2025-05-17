@@ -56,9 +56,9 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string; rememberMe?: boolean }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/login', credentials);
+      const response = await api.post('/api/auth/login', credentials);
       const { token, refreshToken, user } = response.data;
-      
+      // if(response)
       if (credentials.rememberMe) {
         localStorage.setItem('token', token);
         localStorage.setItem('refreshToken', refreshToken);

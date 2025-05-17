@@ -77,36 +77,36 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "User Login")
-    public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
-        System.err.println("loginData: " + loginData);
-        try {
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginData.get("email"), loginData.get("password")
-                )
-            );
-        } catch (AuthenticationException e) {
-            return Map.of("error", "Invalid email or password");
-        }
+@Operation(summary = "User Login")
+public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
+    System.err.println("loginData: " + loginData);
+    
+    // Authenticate first - this will throw AuthenticationException if credentials are wrong
+    authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(
+            loginData.get("email"), 
+            loginData.get("password")
+        )
+    );
 
-        Users user = userRepository.findByEmail(loginData.get("email"))
-            .orElseThrow(() -> new RuntimeException("User not found"));
+    // If authentication succeeds, proceed
+    Users user = userRepository.findByEmail(loginData.get("email"))
+        .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String token = jwtUtil.generateToken(user.getEmail());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+    String token = jwtUtil.generateToken(user.getEmail());
+    String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
 
-        return Map.of(
-            "token", token,
-            "refreshToken", refreshToken,
-            "user", Map.of(
-                "id", user.getId(), 
-                "email", user.getEmail(), 
-                "name", user.getName(), 
-                "role", user.getRole()
-            )
-        );
-    }
+    return Map.of(
+        "token", token,
+        "refreshToken", refreshToken,
+        "user", Map.of(
+            "id", user.getId(), 
+            "email", user.getEmail(), 
+            "name", user.getName(), 
+            "role", user.getRole()
+        )
+    );
+}
 
     @GetMapping("/user")
     @Operation(summary = "Get User With AuthKey")
@@ -140,6 +140,31 @@ public class AuthController {
         return Map.of("message", "OTP sent to your email");
     }
 
+    @PostMapping("/validate-otp")
+    @Operation(summary = "Validate OTP")
+    public Map<String, Object> validateOtp(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String otp = payload.get("otp");
+
+        if (userRepository.findByEmail(email).isEmpty()) {
+            return Map.of("error", "User not found");
+        }
+
+        boolean isValid = otpService.validateOtp(email, otp);
+        
+        if (isValid) {
+            return Map.of(
+                "isValid", true,
+                "message", "OTP validated successfully"
+            );
+        } else {
+            return Map.of(
+                "isValid", false,
+                "error", "Invalid or expired OTP"
+            );
+        }
+    }
+
     @PostMapping("/reset-password")
     @Operation(summary = "Reset User Password")
     public Map<String, String> resetPassword(@RequestBody Map<String, String> payload) {
@@ -147,9 +172,9 @@ public class AuthController {
         String otp = payload.get("otp");
         String newPassword = payload.get("newPassword");
 
-        if (!otpService.validateOtp(email, otp)) {
-            return Map.of("error", "Invalid or expired OTP");
-        }
+        // if (!otpService.validateOtp(email, otp)) {
+        //     return Map.of("error", "Invalid or expired OTP");
+        // }
 
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

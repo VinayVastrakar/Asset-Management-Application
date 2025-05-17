@@ -44,7 +44,7 @@ public class OtpService {
         String mobileNumber = users.getMobileNumber();
 
         emailService.sendEmail(userEmail,subject,msg);
-        smsService.sendSms(mobileNumber,msg);
+        // smsService.sendSms(mobileNumber,msg);
 
         return otp;
     }

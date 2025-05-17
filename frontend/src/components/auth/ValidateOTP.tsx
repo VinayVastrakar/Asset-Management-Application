@@ -37,13 +37,25 @@ const ValidateOTP: React.FC = () => {
 
         try {
             const response = await passwordApi.validateOTP({ email, otp });
-            if (response.data.data.isValid) {
-                navigate('/reset-password', { state: { email, otp } });
+            
+          
+            console.log("------> validateOTP-45")
+            console.log(response);
+            console.log("------> validateOTP-47")
+            console.log(response.data.isValid);
+            // console.log(response.data.isvalid);
+            if (response.data.isValid) {
+                setMessage(response.data.message);
+                // Navigate to reset password page after a short delay
+                console.log("------> validateOTP-49")
+                setTimeout(() => {
+                    navigate('/reset-password', { state: { email, otp } });
+                }, 1000);
             } else {
                 setError('Invalid OTP. Please try again.');
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to validate OTP');
+            setError(err.response?.data?.error || err.response?.data?.message || 'Failed to validate OTP');
         } finally {
             setLoading(false);
         }
@@ -59,7 +71,7 @@ const ValidateOTP: React.FC = () => {
             setMessage(response.data.message);
             setTimer(60);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to resend OTP');
+            setError(err.response?.data?.error || err.response?.data?.message || 'Failed to resend OTP');
         } finally {
             setLoading(false);
         }
@@ -87,10 +99,13 @@ const ValidateOTP: React.FC = () => {
                                 name="otp"
                                 type="text"
                                 required
+                                maxLength={6}
+                                pattern="[0-9]*"
+                                inputMode="numeric"
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Enter OTP"
+                                placeholder="Enter 6-digit OTP"
                                 value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
+                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                             />
                         </div>
                     </div>
