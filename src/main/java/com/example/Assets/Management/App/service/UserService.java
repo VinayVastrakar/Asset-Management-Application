@@ -4,6 +4,8 @@ import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -16,5 +18,7 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
     
-    
+    public List<Users> getAllUsers() {
+        return userRepository.findAll();
+    }
 }

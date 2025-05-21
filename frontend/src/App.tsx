@@ -8,6 +8,7 @@ import PrivateRoute from './components/auth/PrivateRoute';
 import ForgotPassword from './components/auth/ForgotPassword';
 import ValidateOTP from './components/auth/ValidateOTP';
 import ResetPassword from './components/auth/ResetPassword';
+import Layout from './components/layout/Layout';
 
 const App: React.FC = () => {
   return (
@@ -22,7 +23,9 @@ const App: React.FC = () => {
             path="/dashboard"
             element={
               <PrivateRoute allowedRoles={['Admin', 'User']}>
-                <Dashboard />
+                <Layout>
+                  <Dashboard />
+                </Layout>
               </PrivateRoute>
             }
           />

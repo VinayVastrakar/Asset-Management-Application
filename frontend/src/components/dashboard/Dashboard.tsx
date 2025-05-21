@@ -1,48 +1,78 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import { dashboardApi, DashboardStats } from "../../api/dashboard.api";
+import { Alert } from "../common/Alert";
 
 const Dashboard: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  // const { user } = useSelector((state: RootState) => state.auth);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch stats from API (useEffect + useState or RTK Query)
-  // Example stats:
-  const stats = {
-    totalAssets: 120,
-    totalUsers: 15,
-    categoryWise: [
-      { category: "Laptops", count: 40 },
-      { category: "Mobiles", count: 30 },
-      // ...
-    ],
-  };
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await dashboardApi.getStats();
+        setStats(response.data.data);
+      } catch (err: any) {
+        setError(err.response?.data?.message || "Failed to fetch dashboard statistics");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-gray-600">Welcome, {user?.name} ({user?.role})</p>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        {/* <p className="text-gray-600">Welcome, {user?.name} ({user?.role})</p> */}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold">Total Assets</h2>
-          <p className="text-2xl">{stats.totalAssets}</p>
+
+      {error && (
+        <div className="mb-6">
+          <Alert type="error" message={error} />
         </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold">Total Users</h2>
-          <p className="text-2xl">{stats.totalUsers}</p>
+      )}
+
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Total Assets</h2>
+            <p className="text-3xl font-bold text-primary">{stats.totalAssets}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Total Users</h2>
+            <p className="text-3xl font-bold text-primary">{stats.totalUsers}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Assets by Category</h2>
+            <ul className="space-y-3">
+              {stats.categoryWise.map(cat => (
+                <li key={cat.category} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                  <span className="text-gray-700">{cat.category}</span>
+                  <span className="font-medium text-primary">{cat.count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-semibold">Assets by Category</h2>
-          <ul>
-            {stats.categoryWise.map(cat => (
-              <li key={cat.category}>{cat.category}: {cat.count}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

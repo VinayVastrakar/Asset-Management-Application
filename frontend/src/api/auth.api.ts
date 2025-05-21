@@ -8,7 +8,7 @@ export const authApi = {
     logout: () => api.post('/api/auth/logout'),
     
     getCurrentUser: () =>
-        api.get<ApiResponse<LoginResponse['user']>>('/api/auth/me'),
+        api.get<ApiResponse<LoginResponse['user']>>('/api/auth/user'),
     
     refreshToken: () =>
         api.post<ApiResponse<{ token: string }>>('/api/auth/refresh-token'),

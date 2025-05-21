@@ -15,7 +15,7 @@ const Header: React.FC = () => {
           <div className="flex items-center">
             <img
               className="h-8 w-auto"
-              src="/assets/logo.png"
+              src="https://gloitel.in/static/images/gloitel-logo-removebg-preview.png"
               alt="Company Logo"
             />
           </div>
@@ -23,8 +23,9 @@ const Header: React.FC = () => {
           {user && (
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">
-                Welcome, {user.name}
+                Welcome, {user.name} ({user.role})
               </span>
+
               <button
                 onClick={() => dispatch(logout())}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium"

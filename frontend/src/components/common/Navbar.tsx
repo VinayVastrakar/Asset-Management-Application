@@ -8,7 +8,7 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="bg-primary text-white px-4 py-2 flex items-center">
-      <img src="/assets/logo.png" alt="Logo" className="h-8 mr-4" />
+      
       <Link to="/dashboard" className="mr-4 hover:underline">Dashboard</Link>
       <Link to="/assets" className="mr-4 hover:underline">Assets</Link>
       <Link to="/purchase-history" className="mr-4 hover:underline">Purchase History</Link>
