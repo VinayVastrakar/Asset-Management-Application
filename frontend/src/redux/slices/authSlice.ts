@@ -2,6 +2,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from 'api/config';
 import axios from 'axios';
 
+// --- Constants for storage keys ---
+const STORAGE_KEYS = {
+  token: 'token',
+  refreshToken: 'refreshToken',
+  rememberMe: 'rememberMe',
+  user: 'user',
+};
+
+// --- Types ---
 interface User {
   id: number;
   email: string;
@@ -19,32 +28,62 @@ interface AuthState {
   rememberMe: boolean;
 }
 
-const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem('token'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('token'),
-  loading: false,
-  error: null,
-  rememberMe: localStorage.getItem('rememberMe') === 'true',
+// --- Helpers for storage ---
+const getStoredUser = (): User | null => {
+  const userStr = localStorage.getItem(STORAGE_KEYS.user) || sessionStorage.getItem(STORAGE_KEYS.user);
+  return userStr ? JSON.parse(userStr) : null;
 };
 
-// Axios interceptor for token refresh
+const getToken = (): string | null =>
+  localStorage.getItem(STORAGE_KEYS.token) || sessionStorage.getItem(STORAGE_KEYS.token);
+
+const getRefreshToken = (): string | null =>
+  localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
+
+// --- Initial State ---
+const initialState: AuthState = {
+  user: getStoredUser(),
+  token: getToken(),
+  refreshToken: getRefreshToken(),
+  isAuthenticated: !!getToken(),
+  loading: false,
+  error: null,
+  rememberMe: localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true',
+};
+
+// --- Restore Axios Authorization header ---
+if (initialState.token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${initialState.token}`;
+}
+
+// --- Axios Interceptor for Token Refresh ---
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
+        if (!refreshToken) {
+          window.location.href = '/login';
+          return Promise.reject('Refresh token missing');
+        }
         const response = await api.post('/auth/refresh-token', { refreshToken });
         const { token } = response.data;
-        localStorage.setItem('token', token);
+
+        // Store new token
+        if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
+          localStorage.setItem(STORAGE_KEYS.token, token);
+        } else {
+          sessionStorage.setItem(STORAGE_KEYS.token, token);
+        }
+
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         originalRequest.headers['Authorization'] = `Bearer ${token}`;
         return axios(originalRequest);
       } catch (refreshError) {
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }
@@ -52,24 +91,31 @@ axios.interceptors.response.use(
   }
 );
 
+// --- Async Thunks ---
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: { email: string; password: string; rememberMe?: boolean }, { rejectWithValue }) => {
+  async (
+    credentials: { email: string; password: string; rememberMe?: boolean },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await api.post('/api/auth/login', credentials);
       const { token, refreshToken, user } = response.data;
-      // if(response)
+
       if (credentials.rememberMe) {
-        localStorage.setItem('token', token);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem(STORAGE_KEYS.token, token);
+        localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken);
+        localStorage.setItem(STORAGE_KEYS.rememberMe, 'true');
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
       } else {
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('rememberMe', 'false');
+        sessionStorage.setItem(STORAGE_KEYS.token, token);
+        sessionStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken);
+        localStorage.setItem(STORAGE_KEYS.rememberMe, 'false');
+        sessionStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
       }
-      
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       return { token, refreshToken, user };
     } catch (error: any) {
       const message = error.response?.data?.error || 'Login failed. Please check your credentials.';
@@ -82,16 +128,17 @@ export const refreshToken = createAsyncThunk(
   'auth/refreshToken',
   async (_, { rejectWithValue }) => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+      const refreshToken =
+        localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
       const response = await axios.post('/api/auth/refresh-token', { refreshToken });
       const { token } = response.data;
-      
-      if (localStorage.getItem('rememberMe') === 'true') {
-        localStorage.setItem('token', token);
+
+      if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
+        localStorage.setItem(STORAGE_KEYS.token, token);
       } else {
-        sessionStorage.setItem('token', token);
+        sessionStorage.setItem(STORAGE_KEYS.token, token);
       }
-      
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       return { token };
     } catch (error: any) {
@@ -100,6 +147,7 @@ export const refreshToken = createAsyncThunk(
   }
 );
 
+// --- Slice ---
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -110,11 +158,17 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.isAuthenticated = false;
       state.rememberMe = false;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('rememberMe');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('refreshToken');
+
+      // Remove only auth-related keys
+      localStorage.removeItem(STORAGE_KEYS.token);
+      localStorage.removeItem(STORAGE_KEYS.refreshToken);
+      localStorage.removeItem(STORAGE_KEYS.rememberMe);
+      localStorage.removeItem(STORAGE_KEYS.user);
+
+      sessionStorage.removeItem(STORAGE_KEYS.token);
+      sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
+      sessionStorage.removeItem(STORAGE_KEYS.user);
+
       delete axios.defaults.headers.common['Authorization'];
     },
     clearError: (state) => {
@@ -159,4 +213,4 @@ const authSlice = createSlice({
 });
 
 export const { logout, clearError } = authSlice.actions;
-export default authSlice.reducer; 
+export default authSlice.reducer;

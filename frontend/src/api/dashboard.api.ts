@@ -8,6 +8,11 @@ export interface DashboardStats {
     category: string;
     count: number;
   }>;
+  expiringSoonCount: number;
+  expiredAssets: number;
+  assignedAssets: number;
+  nonAssignedAssets: number;
+
 }
 
 export const dashboardApi = {

@@ -12,10 +12,11 @@ const Navbar: React.FC = () => {
       <Link to="/dashboard" className="mr-4 hover:underline">Dashboard</Link>
       <Link to="/assets" className="mr-4 hover:underline">Assets</Link>
       <Link to="/purchase-history" className="mr-4 hover:underline">Purchase History</Link>
-      {user?.role === "Admin" && (
+      {user?.role === "ADMIN" && (
         <>
           <Link to="/users" className="mr-4 hover:underline">Users</Link>
           <Link to="/categories" className="mr-4 hover:underline">Categories</Link>
+          <Link to="/settings" className ="mr-4 hover:underline">Setting</Link>
         </>
       )}
     </nav>

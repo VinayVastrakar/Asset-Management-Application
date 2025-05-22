@@ -15,9 +15,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <Navbar />
-      <main className="flex-grow">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-white shadow">
+        <Header />
+      </div>
+
+      {/* Sticky Navbar below Header */}
+      <div className="sticky top-[64px] z-40 bg-gray-100 shadow">
+        {/* Adjust `top-[64px]` if your header height is different */}
+        <Navbar />
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-grow pt-4">
         {error && (
           <div className="container mx-auto px-4 py-4">
             <Alert type="error" message={error} />
@@ -25,9 +35,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
         {children}
       </main>
+
       <Footer />
     </div>
   );
 };
 
-export default Layout; 
+export default Layout;

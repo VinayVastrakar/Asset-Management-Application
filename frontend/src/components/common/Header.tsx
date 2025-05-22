@@ -14,7 +14,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <img
-              className="h-8 w-auto"
+              className="h-14 w-auto"
               src="https://gloitel.in/static/images/gloitel-logo-removebg-preview.png"
               alt="Company Logo"
             />

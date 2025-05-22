@@ -24,6 +24,7 @@ const Dashboard: React.FC = () => {
       }
     };
 
+    console.log(stats);
     fetchStats();
   }, []);
 
@@ -70,6 +71,22 @@ const Dashboard: React.FC = () => {
                 </li>
               ))}
             </ul>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Expiring Soon Assets</h2>
+            <p className="text-3xl font-bold text-primary">{stats.expiringSoonCount}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Expired Assets</h2>
+            <p className="text-3xl font-bold text-primary">{stats.expiredAssets}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Assigned Assets</h2>
+            <p className="text-3xl font-bold text-primary">{stats.assignedAssets}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Non Assigned Assets</h2>
+            <p className="text-3xl font-bold text-primary">{stats.nonAssignedAssets}</p>
           </div>
         </div>
       )}

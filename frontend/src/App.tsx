@@ -22,7 +22,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard"
             element={
-              <PrivateRoute allowedRoles={['Admin', 'User']}>
+              <PrivateRoute allowedRoles={['ADMIN', 'USER']}>
                 <Layout>
                   <Dashboard />
                 </Layout>

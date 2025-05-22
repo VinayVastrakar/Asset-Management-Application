@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,13 +54,45 @@ public class DashboardController {
                     return category;
                 })
                 .collect(Collectors.toList());
+
+            // Calculate expiring soon (within next 30 days)
+            LocalDate now = LocalDate.now();
+            LocalDate oneMonthFromNow = now.plusMonths(1);
+            long expiringSoonCount = assets.stream()
+                .filter(asset -> {
+                    LocalDate expiryDate = asset.getExpiryDate();
+                    return expiryDate != null &&
+                        !expiryDate.isBefore(now) &&
+                        !expiryDate.isAfter(oneMonthFromNow);
+                })
+                .count();
+
+            //Calculate expired assets
+            long expiredAssetCount = assets.stream()
+                .filter(asset -> {
+                    LocalDate expiryDate = asset.getExpiryDate();
+                    return expiryDate !=null && 
+                        expiryDate.isBefore(now);
+                })
+                .count();
             
+            // Assigned / Non-Assigned count
+            long assignedAssetCount = assets.stream()
+            .filter(asset -> asset.getAssignedToUserName() != null)
+            .count();
+
+            long nonAssignedAssetCount = totalAssets - assignedAssetCount;
+
             // Create response
             Map<String, Object> response = new HashMap<>();
             response.put("data", Map.of(
                 "totalAssets", totalAssets,
                 "totalUsers", totalUsers,
-                "categoryWise", categoryWise
+                "categoryWise", categoryWise,
+                "expiringSoonCount", expiringSoonCount,
+                "expiredAssets",expiredAssetCount,
+                "assignedAssets", assignedAssetCount,
+                "nonAssignedAssets", nonAssignedAssetCount
             ));
             response.put("message", "Dashboard statistics retrieved successfully");
             response.put("status", 200);
