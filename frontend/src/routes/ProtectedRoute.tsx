@@ -5,14 +5,19 @@ import { Navigate } from "react-router-dom";
 
 interface Props {
   children: React.ReactNode;
-  allowedRoles: string[];
+  allowedRoles?: string[];
 }
 
-const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles }) => {
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+const ProtectedRoute: React.FC<Props> = ({ children, allowedRoles = [] }) => {
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  if (!isAuthenticated) return <Navigate to="/login" />;
-  if (!allowedRoles.includes(user?.role || "")) return <Navigate to="/unauthorized" />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return <>{children}</>;
 };

@@ -2,6 +2,7 @@
 package com.example.Assets.Management.App.model;
 
 import com.example.Assets.Management.App.Enums.Role;
+import com.example.Assets.Management.App.Enums.Status;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,4 +24,7 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private Role role; // "ADMIN", "USER"
     private String mobileNumber;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }

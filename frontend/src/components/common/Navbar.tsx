@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
             <span className="hover:underline">User</span>
             <div className={dropdownClass}>
               <Link to="/users/add" className={linkClass}>Add New User</Link>
-              <Link to="/users/manage" className={linkClass}>Manage Users</Link>
+              <Link to="/users" className={linkClass}>Manage Users</Link>
             </div>
           </div>
 

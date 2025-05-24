@@ -9,16 +9,22 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import ValidateOTP from './components/auth/ValidateOTP';
 import ResetPassword from './components/auth/ResetPassword';
 import Layout from './components/layout/Layout';
+import ProtectedRoute from 'routes/ProtectedRoute';
+import AddUser from 'components/user/AddUser';
+import UserList from 'components/user/UserList';
+import EditUser from 'components/user/EditUser';
 
 const App: React.FC = () => {
   return (
     <Provider store={store}>
       <Router>
-        <Routes>
+      <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/validate-otp" element={<ValidateOTP />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/" element={<Login />} />
+
           <Route
             path="/dashboard"
             element={
@@ -29,7 +35,37 @@ const App: React.FC = () => {
               </PrivateRoute>
             }
           />
-          <Route path="/" element={<Login />} />
+
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Layout>
+                  <UserList />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users/add"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Layout>
+                  <AddUser />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Layout>
+                  <EditUser />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </Provider>

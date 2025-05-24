@@ -2,7 +2,6 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { logout } from '../../redux/slices/authSlice';
-import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const dispatch = useDispatch();
