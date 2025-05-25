@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 import java.util.*;
 
@@ -104,5 +105,51 @@ public class UserController {
                 "role", user.getRole()
             )
         );
+    }
+
+    @PutMapping("/inactive/{id}")
+    @Operation(summary = "Deactivate User")
+    public ResponseEntity<?> inactiveUser(@PathVariable long id) {
+        Optional<Users> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Users user = userOpt.get();
+        user.setStatus(Status.Inactive);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(Map.of(
+            "message", "User deactivated successfully",
+            "user", Map.of(
+                "id", user.getId(),
+                "email", user.getEmail(),
+                "name", user.getName(),
+                "status", user.getStatus()
+            )
+        ));
+    }
+
+    @PutMapping("/active/{id}")
+    @Operation(summary = "Activate User")
+    public ResponseEntity<?> activeUser(@PathVariable long id) {
+        Optional<Users> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Users user = userOpt.get();
+        user.setStatus(Status.Active);
+        userRepository.save(user);
+        
+        return ResponseEntity.ok(Map.of(
+            "message", "User activated successfully",
+            "user", Map.of(
+                "id", user.getId(),
+                "email", user.getEmail(),
+                "name", user.getName(),
+                "status", user.getStatus()
+            )
+        ));
     }
 }

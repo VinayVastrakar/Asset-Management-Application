@@ -14,8 +14,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
+import com.example.Assets.Management.App.dto.responseDto.PaginatedResponse;
 import com.cloudinary.Cloudinary;
 import com.example.Assets.Management.App.dto.mapper.AssetMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -41,6 +45,22 @@ public class AssetService {
 
     @Autowired
     private AssetAssignmentHistoryRepository assignmentHistoryRepository;
+
+    public PaginatedResponse<AssetResponseDTO> getAllAssets(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Asset> assets = assetRepository.findAll(pageable);
+    
+        List<AssetResponseDTO> assetResponseDTOList = assets.getContent().stream()
+                .map(assetMapper::toResponseDTO)
+                .toList();
+    
+        return new PaginatedResponse<AssetResponseDTO>(
+            assetResponseDTOList,
+            assets.getTotalElements(),
+            assets.getNumber(),
+            assets.getSize()
+        );
+    }
 
     public List<AssetResponseDTO> getAllAssets() {
         List<AssetResponseDTO> assetResponseDTOList = assetRepository.findAll().stream().map(assetMapper::toResponseDTO).toList();

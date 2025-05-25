@@ -3,11 +3,13 @@ package com.example.Assets.Management.App.controller;
 import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
+import com.example.Assets.Management.App.dto.responseDto.PaginatedResponse;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.AssetService;
+import com.example.Assets.Management.App.dto.responseDto.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -46,8 +48,15 @@ public class AssetController {
 
     @Operation(summary = "Get all assets")
     @GetMapping
-    public List<AssetResponseDTO> getAllAssets() {
-        return assetService.getAllAssets();
+    public ResponseEntity getAllAssets(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+            PaginatedResponse<AssetResponseDTO> paginatedAssets = assetService.getAllAssets(page, size);
+
+    ApiResponse<PaginatedResponse<AssetResponseDTO>> response =
+        new ApiResponse<>(true, "Assets fetched successfully", paginatedAssets);
+
+    return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get asset by ID")

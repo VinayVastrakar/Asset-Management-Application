@@ -71,22 +71,6 @@ const Dashboard: React.FC = () => {
               {stats.totalUsers}
             </p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Assets by Category
-            </h2>
-            <ul className="space-y-3">
-              {stats.categoryWise.map((cat) => (
-                <li
-                  key={cat.category}
-                  className="flex justify-between items-center py-2 border-b last:border-b-0"
-                >
-                  <span className="text-gray-700">{cat.category}</span>
-                  <span className="font-medium text-primary">{cat.count}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
           {user?.role === "ADMIN" && (
             <>
               <div className="bg-white p-6 rounded-lg shadow-md">
@@ -123,6 +107,22 @@ const Dashboard: React.FC = () => {
               </div>
             </>
           )}
+           <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Assets by Category
+            </h2>
+            <ul className="space-y-3">
+              {stats.categoryWise.map((cat) => (
+                <li
+                  key={cat.category}
+                  className="flex justify-between items-center py-2 border-b last:border-b-0"
+                >
+                  <span className="text-gray-700">{cat.category}</span>
+                  <span className="font-medium text-primary">{cat.count}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>

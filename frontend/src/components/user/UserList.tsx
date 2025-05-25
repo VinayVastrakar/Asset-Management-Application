@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
-import { fetchUsers, deleteUser } from '../../redux/slices/userSlice';
+import { fetchUsers, deleteUser, inactiveUser, activeUser } from '../../redux/slices/userSlice';
 import { Link } from 'react-router-dom';
 import Pagination from '../common/Pagination';
 import { User } from '../../api/user.api';
@@ -12,7 +12,7 @@ const UserList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { users, loading, error, total, page, limit } = useSelector((state: RootState) => state.users);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [userStatus, setUserStatus] = useState(false);
 
   console.log("renderTimes", renderTimes);
   renderTimes++;
@@ -29,19 +29,28 @@ const UserList: React.FC = () => {
     dispatch(fetchUsers({ page: newPage, limit, search: searchTerm }));
   };
 
-  const handleStatus = async (id: number) => {
-    if (window.confirm('Are you sure you want to Inactive this user?')) {
-      setIsDeleting(true);
+  const handleStatus = async (id: number, status: string) => {
+    const actionVerb = status === 'Active' ? 'Inactive' : 'Active';
+    if (window.confirm(`Are you sure you want to ${actionVerb} this user?`)) {
+      setUserStatus(true);
       try {
-        await dispatch(deleteUser(id.toString()));
-        // Refresh the current page if it's the last item
+        if (status === 'Active') {
+          await dispatch(inactiveUser(id.toString()));
+        } else {
+          await dispatch(activeUser(id.toString()));
+        }
+  
+        // Refresh the list if last item is removed and we're not on the first page
         if (users.length === 1 && page > 0) {
           dispatch(fetchUsers({ page: page - 1, limit, search: searchTerm }));
+        } else {
+          // Refresh current page
+          dispatch(fetchUsers({ page, limit, search: searchTerm }));
         }
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error updating user status:', error);
       } finally {
-        setIsDeleting(false);
+        setUserStatus(false);
       }
     }
   };
@@ -121,8 +130,8 @@ const UserList: React.FC = () => {
                     Edit
                   </Link>
                   <button
-                    onClick={() => handleStatus(user.id)}
-                    disabled={isDeleting}
+                    onClick={() => handleStatus(user.id, user.status!)}
+                    disabled={userStatus}
                     className={`${
                       user.status === 'Active'
                         ? 'text-red-600 hover:text-red-900'

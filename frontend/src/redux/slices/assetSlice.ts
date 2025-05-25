@@ -9,6 +9,7 @@ export interface Asset {
   purchaseDate: string;
   expiryDate: string;
   warrantyPeriod: number;
+  assignedToUserName:string;
   status: string;
   imageUrl?: string;
 }

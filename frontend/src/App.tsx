@@ -14,6 +14,8 @@ import AddUser from 'components/user/AddUser';
 import UserList from 'components/user/UserList';
 import EditUser from 'components/user/EditUser';
 import AddAsset from 'components/asset/AddAsset';
+import AssetList from 'components/asset/AssetList';
+import AssetView from 'components/asset/AssetView';
 
 const App: React.FC = () => {
   return (
@@ -73,6 +75,26 @@ const App: React.FC = () => {
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Layout>
                   <AddAsset />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assets"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AssetList />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/assets/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AssetView />
                 </Layout>
               </ProtectedRoute>
             }

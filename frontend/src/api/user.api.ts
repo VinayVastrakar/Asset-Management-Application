@@ -39,6 +39,12 @@ const userApi = {
   updateUser: async (id: string, userData: Partial<User>) =>
     await api.put<ApiResponse<User>>(`/api/user/${id}`, userData),
 
+  inactive: async (id: string)=>
+    await api.put<ApiResponse<User>>(`/api/user/inactive/${id}`),
+
+  active: async (id: string)=>
+    await api.put<ApiResponse<User>>(`/api/user/active/${id}`),
+
   deleteUser: async (id: string) =>
     await api.delete<ApiResponse<null>>(`/api/user/${id}`),
 };

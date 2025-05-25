@@ -75,6 +75,22 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
+export const inactiveUser = createAsyncThunk(
+  'users/Inactive',
+  async (id: string) => {
+    await userApi.inactive(id);
+    return id;
+  }
+);
+
+export const activeUser = createAsyncThunk(
+  'users/Acctive',
+  async (id: string) => {
+    await userApi.active(id);
+    return id;
+  }
+);
+
 const userSlice = createSlice({
   name: 'users',
   initialState,
