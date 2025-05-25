@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
 
 @RestController
-@RequestMapping("/api/assets")
+@RequestMapping("/api/asset")
 @Tag(name = "Asset", description = "Asset management APIs")
 @SecurityRequirement(name = "bearerAuth")
 public class AssetController {
@@ -68,6 +68,7 @@ public class AssetController {
 
             // Convert DTO to entity
             Asset asset = assetMapper.toEntity(assetRequestDTO);
+            System.out.println(asset);
 
             // If file is provided, upload image and set image data
             if (file != null && !file.isEmpty()) {

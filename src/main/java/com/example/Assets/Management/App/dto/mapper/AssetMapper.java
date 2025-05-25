@@ -43,7 +43,6 @@ public class AssetMapper {
         asset.setExpiryDate(dto.getExpiryDate());
         asset.setWarrantyPeriod(dto.getWarrantyPeriod());
         asset.setStatus(dto.getStatus());
-        asset.setAssignedToUser(userService.getUserById(dto.getAssignedToUserId()));
         return asset;
     }
 }

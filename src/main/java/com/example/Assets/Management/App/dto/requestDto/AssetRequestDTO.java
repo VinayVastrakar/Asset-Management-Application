@@ -13,5 +13,4 @@ public class AssetRequestDTO {
     private LocalDate expiryDate; // in format yyyy-MM-dd
     private Integer warrantyPeriod; // in months
     private String status; // e.g., "active", "assigned", "retired"
-    private Long assignedToUserId;
 }
