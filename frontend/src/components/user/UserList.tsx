@@ -16,7 +16,6 @@ const UserList: React.FC = () => {
 
   console.log("renderTimes", renderTimes);
   renderTimes++;
-  console.log({ users, loading, error, total, page, limit } );
   useEffect(() => {
     dispatch(fetchUsers({ page, limit, search: searchTerm }));
   }, [dispatch, page, limit, searchTerm]);

@@ -6,6 +6,7 @@ export interface Asset {
   name: string;
   description: string;
   categoryId: number;
+  categoryName:string;
   purchaseDate: string;
   expiryDate: string;
   warrantyPeriod: number;
@@ -46,7 +47,7 @@ export const fetchAssetById = createAsyncThunk(
   'assets/fetchAssetById',
   async (id: number) => {
     const response = await assetApi.getAssetById(id);
-    return response.data;
+    return response;
   }
 );
 

@@ -12,7 +12,7 @@ const AssetView: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchAssetById(parseInt(id)));
+      const response = dispatch(fetchAssetById(parseInt(id)));
     }
   }, [dispatch, id]);
 
@@ -85,8 +85,8 @@ const AssetView: React.FC = () => {
                     <p className="text-gray-800">{asset.status}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-gray-500">Category ID</label>
-                    <p className="text-gray-800">{asset.categoryId}</p>
+                    <label className="text-sm text-gray-500">Category Name</label>
+                    <p className="text-gray-800">{asset.categoryName}</p>
                   </div>
                 </div>
               </div>

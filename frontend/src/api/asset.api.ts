@@ -35,7 +35,7 @@ export const assetApi = {
   // },
 
   getAssetById: async (id: number) => {
-    const response = await api.get<ApiResponse<Asset>>(`/api/asset/${id}`);
+    const response = await api.get<Asset>(`/api/asset/${id}`);
     return response.data;
   },
 

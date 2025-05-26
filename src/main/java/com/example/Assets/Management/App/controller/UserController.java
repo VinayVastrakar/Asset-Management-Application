@@ -107,49 +107,49 @@ public class UserController {
         );
     }
 
-    @PutMapping("/inactive/{id}")
-    @Operation(summary = "Deactivate User")
-    public ResponseEntity<?> inactiveUser(@PathVariable long id) {
-        Optional<Users> userOpt = userRepository.findById(id);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        @PutMapping("/inactive/{id}")
+        @Operation(summary = "Deactivate User")
+        public ResponseEntity<?> inactiveUser(@PathVariable long id) {
+            Optional<Users> userOpt = userRepository.findById(id);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Users user = userOpt.get();
+            user.setStatus(Status.Inactive);
+            userRepository.save(user);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "User deactivated successfully",
+                "user", Map.of(
+                    "id", user.getId(),
+                    "email", user.getEmail(),
+                    "name", user.getName(),
+                    "status", user.getStatus()
+                )
+            ));
         }
-        
-        Users user = userOpt.get();
-        user.setStatus(Status.Inactive);
-        userRepository.save(user);
-        
-        return ResponseEntity.ok(Map.of(
-            "message", "User deactivated successfully",
-            "user", Map.of(
-                "id", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName(),
-                "status", user.getStatus()
-            )
-        ));
-    }
 
-    @PutMapping("/active/{id}")
-    @Operation(summary = "Activate User")
-    public ResponseEntity<?> activeUser(@PathVariable long id) {
-        Optional<Users> userOpt = userRepository.findById(id);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        @PutMapping("/active/{id}")
+        @Operation(summary = "Activate User")
+        public ResponseEntity<?> activeUser(@PathVariable long id) {
+            Optional<Users> userOpt = userRepository.findById(id);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Users user = userOpt.get();
+            user.setStatus(Status.Active);
+            userRepository.save(user);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "User activated successfully",
+                "user", Map.of(
+                    "id", user.getId(),
+                    "email", user.getEmail(),
+                    "name", user.getName(),
+                    "status", user.getStatus()
+                )
+            ));
         }
-        
-        Users user = userOpt.get();
-        user.setStatus(Status.Active);
-        userRepository.save(user);
-        
-        return ResponseEntity.ok(Map.of(
-            "message", "User activated successfully",
-            "user", Map.of(
-                "id", user.getId(),
-                "email", user.getEmail(),
-                "name", user.getName(),
-                "status", user.getStatus()
-            )
-        ));
-    }
 }
