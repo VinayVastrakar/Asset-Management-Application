@@ -16,17 +16,6 @@ const AssetView: React.FC = () => {
     }
   }, [dispatch, id]);
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this asset?')) {
-      try {
-        await dispatch(deleteAsset(parseInt(id!))).unwrap();
-        navigate('/assets');
-      } catch (err) {
-        console.error('Failed to delete asset:', err);
-      }
-    }
-  };
-
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
   }
@@ -50,12 +39,6 @@ const AssetView: React.FC = () => {
               className="px-4 py-2 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200"
             >
               Edit Asset
-            </button>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
-            >
-              Delete Asset
             </button>
           </div>
         </div>

@@ -68,6 +68,23 @@ public class UserController {
         );
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Get User By ID")
+    public Map<String, Object> getUserById(@PathVariable Long id){
+        Users user = userRepository.findById(id).get();
+        return Map.of(
+            "user", Map.of(
+                "id", user.getId(),
+                "email", user.getEmail(),
+                "name", user.getName(),
+                "role", user.getRole(),
+                "mobileNo",user.getMobileNumber(),
+                "status",user.getStatus()
+            )
+        );
+
+    }
+
     @PostMapping("/register")
     @Operation(summary = "User Registration")
     public Map<String, Object> register(@RequestBody Users user) {

@@ -1,6 +1,7 @@
 package com.example.Assets.Management.App.controller;
 
 import com.example.Assets.Management.App.Enums.Role;
+import com.example.Assets.Management.App.Enums.Status;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.security.JwtUtil;
@@ -77,36 +78,39 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-@Operation(summary = "User Login")
-public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
-    System.err.println("loginData: " + loginData);
-    
-    // Authenticate first - this will throw AuthenticationException if credentials are wrong
-    authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            loginData.get("email"), 
-            loginData.get("password")
-        )
-    );
+    @Operation(summary = "User Login")
+    public Map<String, Object> login(@RequestBody Map<String, String> loginData) {
+        System.err.println("loginData: " + loginData);
+        
+        // Authenticate first - this will throw AuthenticationException if credentials are wrong
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginData.get("email"), 
+                loginData.get("password")
+            )
+        );
 
-    // If authentication succeeds, proceed
-    Users user = userRepository.findByEmail(loginData.get("email"))
-        .orElseThrow(() -> new RuntimeException("User not found"));
+        // If authentication succeeds, proceed
+        Users user = userRepository.findByEmail(loginData.get("email"))
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getStatus()!= Status.Active ) {
+                throw new RuntimeException("User account is not active");
+            }
 
-    String token = jwtUtil.generateToken(user.getEmail());
-    String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getEmail());
 
-    return Map.of(
-        "token", token,
-        "refreshToken", refreshToken,
-        "user", Map.of(
-            "id", user.getId(), 
-            "email", user.getEmail(), 
-            "name", user.getName(), 
-            "role", user.getRole()
-        )
-    );
-}
+        return Map.of(
+            "token", token,
+            "refreshToken", refreshToken,
+            "user", Map.of(
+                "id", user.getId(), 
+                "email", user.getEmail(), 
+                "name", user.getName(), 
+                "role", user.getRole()
+            )
+        );
+    }
 
     @GetMapping("/user")
     @Operation(summary = "Get User With AuthKey")

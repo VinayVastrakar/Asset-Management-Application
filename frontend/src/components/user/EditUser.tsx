@@ -7,6 +7,7 @@ import { fetchUserById, updateUser } from '../../redux/slices/userSlice';
 interface UserFormData {
   name: string;
   email: string;
+  mobileNumber: string;
   role: string;
   status: string;
 }
@@ -16,17 +17,19 @@ const EditUser: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { currentUser, loading, error } = useSelector((state: RootState) => state.users);
-  
+
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
-    role: 'USER',
-    status: 'Active'
+    mobileNumber: '',
+    role: '',
+    status: 'Active',
   });
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchUserById(id));
+      const response =  dispatch(fetchUserById(id)).unwrap();
+      console.log('------->',response);
     }
   }, [dispatch, id]);
 
@@ -35,26 +38,28 @@ const EditUser: React.FC = () => {
       setFormData({
         name: currentUser.name,
         email: currentUser.email,
+        mobileNumber: currentUser.mobileNumber,
         role: currentUser.role,
-        status: currentUser.status!
+        status: currentUser.status || 'Active',
       });
     }
   }, [currentUser]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+
+  
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-
     try {
-      await dispatch(updateUser({ id, userData: formData }));
+      await dispatch(updateUser({ id, userData: formData })).unwrap();
       navigate('/users');
     } catch (err) {
       console.error('Error updating user:', err);
@@ -69,37 +74,28 @@ const EditUser: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Edit User</h1>
-        
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          {[
+            { label: 'Name', name: 'name', type: 'text' },
+            { label: 'Email', name: 'email', type: 'email' },
+            { label: 'Mobile No', name: 'mobileNo', type: 'text' },
+          ].map(({ label, name, type }) => (
+            <div className="mb-4" key={name}>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={name}>
+                {label}
+              </label>
+              <input
+                type={type}
+                id={name}
+                name={name}
+                value={formData[name as keyof UserFormData]}
+                onChange={handleChange}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required
+              />
+            </div>
+          ))}
 
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
@@ -155,4 +151,4 @@ const EditUser: React.FC = () => {
   );
 };
 
-export default EditUser; 
+export default EditUser;

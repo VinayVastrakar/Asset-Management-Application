@@ -46,7 +46,7 @@ export const fetchUserById = createAsyncThunk(
   'users/fetchUserById',
   async (id: string) => {
     const response = await userApi.getUserById(id);
-    return response.data.data;
+    return response.data;
   }
 );
 

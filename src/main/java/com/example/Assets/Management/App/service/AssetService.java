@@ -86,6 +86,19 @@ public class AssetService {
         return assetMapper.toResponseDTO(updatedAsset);
     }
 
+
+    public void inactiveAsset(Long id){
+        Asset asset = assetRepository.findById(id).get();
+        asset.setStatus("INACTIVE");
+        assetRepository.save(asset);
+    }
+
+    public void activeAsset(Long id){
+        Asset asset = assetRepository.findById(id).get();
+        asset.setStatus("AVAILABLE");
+        assetRepository.save(asset);
+    }
+
     public void deleteAsset(Long id) {
         assetRepository.deleteById(id);
     }

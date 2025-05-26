@@ -1,5 +1,6 @@
 import api from './config';
 import { Asset } from '../redux/slices/assetSlice';
+import { inactiveUser } from 'redux/slices/userSlice';
 
 export interface AssetQueryParams {
   page?: number;
@@ -28,12 +29,6 @@ export const assetApi = {
     return response.data;
   },
 
-  // getAssets: async (params: AssetQueryParams) => {
-  //   const response = await api.get<ApiResponse<PaginatedResponse<Asset>>>('/api/asset', { params });
-  //   console.log("Assets by page: ", response); // Better log
-  //   return response.data; // This is the actual asset array
-  // },
-
   getAssetById: async (id: number) => {
     const response = await api.get<Asset>(`/api/asset/${id}`);
     return response.data;
@@ -55,6 +50,14 @@ export const assetApi = {
       },
     });
     return response.data;
+  },
+
+  inactiveAsset : async(id:number)=> {
+    const response = await api.put<ApiResponse<null>>(`/api/asset/inactive/${id}`);
+  },
+
+  activeAsset : async(id:number)=> {
+    const response = await api.put<ApiResponse<null>>(`/api/asset/active/${id}`);
   },
 
   deleteAsset: async (id: number) => {

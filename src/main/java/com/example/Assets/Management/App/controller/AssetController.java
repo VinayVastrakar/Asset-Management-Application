@@ -102,6 +102,20 @@ public class AssetController {
         return assetService.updateAsset(id, assetRequestDTO);
     }
 
+    @Operation(summary = "Inactive asset by asset_id")
+    @PutMapping("/inactive/{id}")
+    public ResponseEntity<Void> inactiveAsset(@PathVariable Long id) {
+        assetService.inactiveAsset(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Inactive asset by asset_id")
+    @PutMapping("/active/{id}")
+    public ResponseEntity<Void> activeAsset(@PathVariable Long id) {
+        assetService.activeAsset(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Delete asset by asset_id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAsset(@PathVariable Long id) {

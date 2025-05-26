@@ -5,6 +5,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  mobileNumber:string;
   role: string;
   status?: string;
 }
@@ -31,7 +32,7 @@ const userApi = {
     await api.get<UserListResponse>('/api/user', { params }),
 
   getUserById: async (id: string) =>
-    await api.get<ApiResponse<User>>(`/api/user/${id}`),
+    await api.get<User>(`/api/user/${id}`),
 
   createUser: async (userData: Omit<User, 'id'>) =>
     await api.post<ApiResponse<UserResponse>>('/api/user/register', userData),

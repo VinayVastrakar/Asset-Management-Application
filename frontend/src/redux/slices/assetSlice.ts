@@ -75,6 +75,22 @@ export const deleteAsset = createAsyncThunk(
   }
 );
 
+export const inactiveAsset = createAsyncThunk(
+  'assets/inactiveAsset',
+  async (id: number) => {
+    await assetApi.inactiveAsset(id);
+    return id;
+  }
+);
+
+export const activeAsset = createAsyncThunk(
+  'assets/activeAsset',
+  async (id: number) => {
+    await assetApi.activeAsset(id);
+    return id;
+  }
+);
+
 const assetSlice = createSlice({
   name: 'assets',
   initialState,
