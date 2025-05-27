@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { authApi } from 'api/auth.api';
 import api from 'api/config';
 import axios from 'axios';
 
@@ -60,17 +61,20 @@ if (initialState.token) {
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
+    alert("Error Message: ")
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
+      
       try {
         const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
         if (!refreshToken) {
           window.location.href = '/login';
           return Promise.reject('Refresh token missing');
         }
-        const response = await api.post('/auth/refresh-token', { refreshToken });
-        const { token } = response.data;
+        const response = await authApi.refreshToken(refreshToken);
+        console.log(response);
+        const { token } = response.refreshToken;
 
         // Store new token
         if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
@@ -130,8 +134,11 @@ export const refreshToken = createAsyncThunk(
     try {
       const refreshToken =
         localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
-      const response = await axios.post('/api/auth/refresh-token', { refreshToken });
-      const { token } = response.data;
+      if (!refreshToken) {
+        return rejectWithValue('Refresh token missing');
+      }
+      const response = await authApi.refreshToken(refreshToken);
+      const { token } = response.refreshToken;
 
       if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
         localStorage.setItem(STORAGE_KEYS.token, token);
