@@ -9,6 +9,8 @@ import com.example.Assets.Management.App.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.hibernate.query.NativeQuery.ReturnProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -73,14 +75,12 @@ public class UserController {
     public Map<String, Object> getUserById(@PathVariable Long id){
         Users user = userRepository.findById(id).get();
         return Map.of(
-            "user", Map.of(
                 "id", user.getId(),
                 "email", user.getEmail(),
                 "name", user.getName(),
                 "role", user.getRole(),
-                "mobileNo",user.getMobileNumber(),
+                "mobileNumber",user.getMobileNumber(),
                 "status",user.getStatus()
-            )
         );
 
     }
@@ -124,6 +124,21 @@ public class UserController {
         );
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Update User Data")
+    public ResponseEntity updateUser(
+        @PathVariable Long id, 
+        @RequestBody Users users){
+            Users u = userRepository.findById(id).get();
+            u.setEmail(users.getEmail());
+            u.setRole(users.getRole());
+            u.setStatus(users.getStatus());
+            userRepository.save(u);
+            return ResponseEntity.ok(Map.of(
+                "message","User "+u.getName()+" is Updated"
+            ));
+        }
+
         @PutMapping("/inactive/{id}")
         @Operation(summary = "Deactivate User")
         public ResponseEntity<?> inactiveUser(@PathVariable long id) {
@@ -146,6 +161,8 @@ public class UserController {
                 )
             ));
         }
+
+
 
         @PutMapping("/active/{id}")
         @Operation(summary = "Activate User")

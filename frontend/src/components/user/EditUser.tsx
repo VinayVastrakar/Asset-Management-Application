@@ -7,7 +7,7 @@ import { fetchUserById, updateUser } from '../../redux/slices/userSlice';
 interface UserFormData {
   name: string;
   email: string;
-  mobileNumber: string;
+  mobileNo: string;
   role: string;
   status: string;
 }
@@ -16,38 +16,36 @@ const EditUser: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { currentUser, loading, error } = useSelector((state: RootState) => state.users);
+  const { currentUser, fetchLoading, updateLoading, error } = useSelector((state: RootState) => state.users);
 
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
-    mobileNumber: '',
+    mobileNo: '',
     role: '',
     status: 'Active',
   });
 
   useEffect(() => {
     if (id) {
-      const response =  dispatch(fetchUserById(id)).unwrap();
-      console.log('------->',response);
+      dispatch(fetchUserById(id));
     }
   }, [dispatch, id]);
+  
 
   useEffect(() => {
     if (currentUser) {
       setFormData({
         name: currentUser.name,
         email: currentUser.email,
-        mobileNumber: currentUser.mobileNumber,
+        mobileNo: currentUser.mobileNumber,
         role: currentUser.role,
         status: currentUser.status || 'Active',
       });
     }
   }, [currentUser]);
 
-
   
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -66,7 +64,7 @@ const EditUser: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
+  if (fetchLoading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
   if (!currentUser) return <div className="text-center">User not found</div>;
 
@@ -91,7 +89,10 @@ const EditUser: React.FC = () => {
                 name={name}
                 value={formData[name as keyof UserFormData]}
                 onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                readOnly={name === 'name' || name === 'email'}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                  name === 'name' || name === 'email' ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
                 required
               />
             </div>
@@ -130,12 +131,12 @@ const EditUser: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between">
-            <button
+          <button
               type="submit"
-              disabled={loading}
+              disabled={updateLoading}
               className="bg-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:bg-primary-dark disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {updateLoading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"

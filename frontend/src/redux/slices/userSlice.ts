@@ -1,29 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import userApi, { User, UserQueryParams } from '../../api/user.api';
-import { AxiosResponse } from 'axios';
-import { ApiResponse } from 'types/api.types';
 
 export interface UserState {
   users: User[];
   currentUser: User | null;
   loading: boolean;
+  fetchLoading: boolean;
+  updateLoading: boolean;
   error: string | null;
   total: number;
   page: number;
   limit: number;
 }
 
-interface UserListResponse {
-  users: User[];
-  totalItems: number;
-  currentPage: number;
-  totalPages: number;
-}
-
 const initialState: UserState = {
   users: [],
   currentUser: null,
   loading: false,
+  fetchLoading: false,
+  updateLoading: false,
   error: null,
   total: 0,
   page: 0,
@@ -63,7 +58,8 @@ export const updateUser = createAsyncThunk(
   'users/updateUser',
   async ({ id, userData }: { id: string; userData: Partial<User> }) => {
     const response = await userApi.updateUser(id, userData);
-    return response.data.data;
+    console.log(response.data);
+    return response.data;
   }
 );
 
@@ -106,30 +102,30 @@ const userSlice = createSlice({
     builder
       // Fetch Users
       .addCase(fetchUsers.pending, (state) => {
-        state.loading = true;
+        state.fetchLoading = true;
         state.error = null;
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.loading = false;
+        state.fetchLoading = false;
         state.users = action.payload.users;
         state.total = action.payload.totalItems;
         state.page = action.payload.currentPage;
       })
       .addCase(fetchUsers.rejected, (state, action) => {
-        state.loading = false;
+        state.fetchLoading = false;
         state.error = action.error.message || 'Failed to fetch users';
       })
       // Fetch User by ID
       .addCase(fetchUserById.pending, (state) => {
-        state.loading = true;
+        state.fetchLoading = true;
         state.error = null;
       })
       .addCase(fetchUserById.fulfilled, (state, action) => {
-        state.loading = false;
+        state.fetchLoading = false;
         state.currentUser = action.payload;
       })
       .addCase(fetchUserById.rejected, (state, action) => {
-        state.loading = false;
+        state.fetchLoading = false;
         state.error = action.error.message || 'Failed to fetch user';
       })
       // Add User
@@ -148,11 +144,11 @@ const userSlice = createSlice({
       })
       // Update User
       .addCase(updateUser.pending, (state) => {
-        state.loading = true;
+        state.updateLoading = true;
         state.error = null;
       })
       .addCase(updateUser.fulfilled, (state, action) => {
-        state.loading = false;
+        state.updateLoading = false;
         const index = state.users.findIndex(user => user.id === action.payload.id);
         if (index !== -1) {
           state.users[index] = action.payload;
@@ -162,7 +158,7 @@ const userSlice = createSlice({
         }
       })
       .addCase(updateUser.rejected, (state, action) => {
-        state.loading = false;
+        state.updateLoading = false;
         state.error = action.error.message || 'Failed to update user';
       })
       // Delete User

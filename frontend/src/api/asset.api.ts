@@ -1,6 +1,5 @@
 import api from './config';
 import { Asset } from '../redux/slices/assetSlice';
-import { inactiveUser } from 'redux/slices/userSlice';
 
 export interface AssetQueryParams {
   page?: number;
@@ -53,11 +52,11 @@ export const assetApi = {
   },
 
   inactiveAsset : async(id:number)=> {
-    const response = await api.put<ApiResponse<null>>(`/api/asset/inactive/${id}`);
+    await api.put<ApiResponse<null>>(`/api/asset/inactive/${id}`);
   },
 
   activeAsset : async(id:number)=> {
-    const response = await api.put<ApiResponse<null>>(`/api/asset/active/${id}`);
+    await api.put<ApiResponse<null>>(`/api/asset/active/${id}`);
   },
 
   deleteAsset: async (id: number) => {

@@ -12,7 +12,7 @@ const AssetView: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      const response = dispatch(fetchAssetById(parseInt(id)));
+      dispatch(fetchAssetById(parseInt(id)));
     }
   }, [dispatch, id]);
 
