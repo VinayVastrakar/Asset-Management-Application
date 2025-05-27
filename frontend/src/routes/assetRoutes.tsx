@@ -4,6 +4,7 @@ import ProtectedRoute from './ProtectedRoute';
 import AddAsset from '../components/asset/AddAsset';
 import AssetList from '../components/asset/AssetList';
 import AssetView from '../components/asset/AssetView';
+import EditAsset from 'components/asset/EditAsset';
 
 const AssetRoutes = () => {
   return (
@@ -32,6 +33,14 @@ const AssetRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/assets/edit/:id"
+        element = {
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <EditAsset/>
+          </ProtectedRoute>
+        }
+        />
       {/* Add more asset routes here */}
     </>
   );

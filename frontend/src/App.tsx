@@ -16,6 +16,7 @@ import EditUser from 'components/user/EditUser';
 import AddAsset from 'components/asset/AddAsset';
 import AssetList from 'components/asset/AssetList';
 import AssetView from 'components/asset/AssetView';
+import EditAsset from 'components/asset/EditAsset';
 
 const App: React.FC = () => {
   return (
@@ -96,6 +97,15 @@ const App: React.FC = () => {
                 <Layout>
                   <AssetView />
                 </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assets/edit/:id"
+            element = {
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <EditAsset/>
               </ProtectedRoute>
             }
           />
