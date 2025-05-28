@@ -74,7 +74,7 @@ axios.interceptors.response.use(
         }
         const response = await authApi.refreshToken(refreshToken);
         console.log(response);
-        const { token } = response.refreshToken;
+        const { token } = response.data;
 
         // Store new token
         if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
@@ -138,7 +138,7 @@ export const refreshToken = createAsyncThunk(
         return rejectWithValue('Refresh token missing');
       }
       const response = await authApi.refreshToken(refreshToken);
-      const { token } = response.refreshToken;
+      const { token } = response.data;
 
       if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
         localStorage.setItem(STORAGE_KEYS.token, token);
