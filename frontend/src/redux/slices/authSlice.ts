@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authApi } from 'api/auth.api';
 import api from 'api/config';
 import axios from 'axios';
+import { get } from 'http';
 
 // --- Constants for storage keys ---
 const STORAGE_KEYS = {
@@ -17,6 +18,17 @@ interface User {
   email: string;
   name: string;
   role: string;
+}
+
+interface AuthResponse {
+  token: string;
+  refreshToken: string;
+  user: User;
+}
+
+interface RefreshTokenResponse {
+  token: string;
+  refreshToken?: string;
 }
 
 interface AuthState {
@@ -41,6 +53,7 @@ const getToken = (): string | null =>
 const getRefreshToken = (): string | null =>
   localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
 
+
 // --- Initial State ---
 const initialState: AuthState = {
   user: getStoredUser(),
@@ -61,32 +74,47 @@ if (initialState.token) {
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
-    alert("Error Message: ")
     const originalRequest = error.config;
+    
+    // Only attempt refresh if it's an auth error and we haven't tried before
     if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
       
       try {
         const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
         if (!refreshToken) {
+          // Clear all auth data and redirect to login
+          localStorage.removeItem(STORAGE_KEYS.token);
+          localStorage.removeItem(STORAGE_KEYS.refreshToken);
+          localStorage.removeItem(STORAGE_KEYS.user);
+          sessionStorage.removeItem(STORAGE_KEYS.token);
+          sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
+          sessionStorage.removeItem(STORAGE_KEYS.user);
           window.location.href = '/login';
-          return Promise.reject('Refresh token missing');
+          return Promise.reject('No refresh token available');
         }
+
         const response = await authApi.refreshToken(refreshToken);
-        console.log(response);
-        const { token } = response.data;
+        const { token } = response.data.data;
 
         // Store new token
-        if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
-          localStorage.setItem(STORAGE_KEYS.token, token);
-        } else {
-          sessionStorage.setItem(STORAGE_KEYS.token, token);
-        }
+        const storage = localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true' ? localStorage : sessionStorage;
+        storage.setItem(STORAGE_KEYS.token, token);
 
+        // Update axios headers
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         originalRequest.headers['Authorization'] = `Bearer ${token}`;
+
+        // Retry the original request
         return axios(originalRequest);
       } catch (refreshError) {
+        // Clear all auth data on refresh failure
+        localStorage.removeItem(STORAGE_KEYS.token);
+        localStorage.removeItem(STORAGE_KEYS.refreshToken);
+        localStorage.removeItem(STORAGE_KEYS.user);
+        sessionStorage.removeItem(STORAGE_KEYS.token);
+        sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
+        sessionStorage.removeItem(STORAGE_KEYS.user);
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
@@ -103,7 +131,7 @@ export const login = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await api.post('/api/auth/login', credentials);
+      const response = await api.post<AuthResponse>('/api/auth/login', credentials);
       const { token, refreshToken, user } = response.data;
 
       if (credentials.rememberMe) {
@@ -128,31 +156,28 @@ export const login = createAsyncThunk(
   }
 );
 
-export const refreshToken = createAsyncThunk(
-  'auth/refreshToken',
-  async (_, { rejectWithValue }) => {
-    try {
-      const refreshToken =
-        localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
-      if (!refreshToken) {
-        return rejectWithValue('Refresh token missing');
-      }
-      const response = await authApi.refreshToken(refreshToken);
-      const { token } = response.data;
+// export const refreshToken = createAsyncThunk(
+//   'auth/refreshToken',
+//   async (_, { rejectWithValue }) => {
+//     try {
+//       const refreshToken =
+//         localStorage.getItem(STORAGE_KEYS.refreshToken) || sessionStorage.getItem(STORAGE_KEYS.refreshToken);
+//       if (!refreshToken) {
+//         return rejectWithValue('Refresh token missing');
+//       }
+//       const response = await authApi.refreshToken(refreshToken);
+//       const { token } = response.data.data;
 
-      if (localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true') {
-        localStorage.setItem(STORAGE_KEYS.token, token);
-      } else {
-        sessionStorage.setItem(STORAGE_KEYS.token, token);
-      }
+//       const storage = localStorage.getItem(STORAGE_KEYS.rememberMe) === 'true' ? localStorage : sessionStorage;
+//       storage.setItem(STORAGE_KEYS.token, token);
 
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      return { token };
-    } catch (error: any) {
-      return rejectWithValue('Session expired. Please login again.');
-    }
-  }
-);
+//       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+//       return { token };
+//     } catch (error: any) {
+//       return rejectWithValue('Session expired. Please login again.');
+//     }
+//   }
+// );
 
 // --- Slice ---
 const authSlice = createSlice({
@@ -200,22 +225,22 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      .addCase(refreshToken.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(refreshToken.fulfilled, (state, action) => {
-        state.loading = false;
-        state.token = action.payload.token;
-        state.error = null;
-      })
-      .addCase(refreshToken.rejected, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.refreshToken = null;
-        state.error = action.payload as string;
-      });
+      // .addCase(refreshToken.pending, (state) => {
+      //   state.loading = true;
+      // })
+      // .addCase(refreshToken.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.token = action.payload.token;
+      //   state.error = null;
+      // })
+      // .addCase(refreshToken.rejected, (state, action) => {
+      //   state.loading = false;
+      //   state.isAuthenticated = false;
+      //   state.user = null;
+      //   state.token = null;
+      //   state.refreshToken = null;
+      //   state.error = action.payload as string;
+      // });
   },
 });
 

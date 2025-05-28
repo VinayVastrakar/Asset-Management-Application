@@ -10,9 +10,8 @@ export const authApi = {
     getCurrentUser: () =>
         api.get<ApiResponse<LoginResponse['user']>>('/api/auth/user'),
     
-    refreshToken: async (refreshToken: string) =>{
-        console.log("refreshToken",refreshToken)
-        await api.post<{ refreshToken: string }>('/api/auth/refresh-token', { refreshToken })
+    refreshToken: (refreshToken: string) =>{
+        const response = api.post<{ data: { token: string }, message: string }>('/api/auth/refresh-token', { refreshToken })
+        return response;
     },
-        
 }; 

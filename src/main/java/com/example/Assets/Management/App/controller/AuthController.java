@@ -191,7 +191,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     @Operation(summary = "Refresh JWT Token")
-    public Map<String, String> refreshToken(@RequestBody Map<String, String> payload) {
+    public Map<String, Object> refreshToken(@RequestBody Map<String, String> payload) {
         String refreshToken = payload.get("refreshToken");
         
         if (refreshToken == null || !jwtUtil.validateRefreshToken(refreshToken)) {
@@ -205,7 +205,9 @@ public class AuthController {
         String newToken = jwtUtil.generateToken(email);
         
         return Map.of(
-            "token", newToken,
+            "data", Map.of(
+                "token", newToken
+            ),
             "message", "Token refreshed successfully"
         );
     }
