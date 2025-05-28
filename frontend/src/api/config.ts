@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestCo
 import { authApi } from './auth.api';
 
 // Base URL configuration
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+export const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 // Create axios instance with default config
 const api: AxiosInstance = axios.create({
@@ -49,9 +49,7 @@ api.interceptors.response.use(
 
                 // Remove Authorization header for refresh token request
                 delete originalRequest.headers.Authorization;
-                console.log("before api calling")
                 const response = await authApi.refreshToken(refreshToken);
-                console.log("after api calling")
                 const { token } = response.data.data;
 
                 const storage = localStorage.getItem('rememberMe') === 'true' ? localStorage : sessionStorage;
