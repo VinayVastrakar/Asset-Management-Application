@@ -6,20 +6,21 @@ export interface Asset {
   name: string;
   description: string;
   categoryId: number;
-  categoryName:string;
+  categoryName: string;
   purchaseDate: string;
   expiryDate: string;
   warrantyPeriod: number;
-  assignedToUserName:string;
+  assignedToUserName: string;
   status: string;
   imageUrl?: string;
 }
 
 export interface AssetState {
-  assets: Asset[];
+  assets: Record<number, Asset>;
   currentAsset: Asset | null;
   loading: boolean;
   updating: boolean;
+  isLoaded: false;
   error: string | null;
   total: number;
   page: number;
@@ -27,16 +28,18 @@ export interface AssetState {
 }
 
 const initialState: AssetState = {
-  assets: [],
+  assets: {},
   currentAsset: null,
   loading: false,
   updating: false,
+  isLoaded: false,  
   error: null,
   total: 0,
   page: 0,
-  limit: 10
+  limit: 10,
 };
 
+// Thunks
 export const fetchAssets = createAsyncThunk(
   'assets/fetchAssets',
   async (params: AssetQueryParams) => {
@@ -98,6 +101,7 @@ export const activeAsset = createAsyncThunk(
   }
 );
 
+// Slice
 const assetSlice = createSlice({
   name: 'assets',
   initialState,
@@ -118,15 +122,21 @@ const assetSlice = createSlice({
       })
       .addCase(fetchAssets.fulfilled, (state, action) => {
         state.loading = false;
-        state.assets = action.payload.data;
+        const assetArray = action.payload.data;
+        state.assets = assetArray.reduce((acc, asset) => {
+          acc[asset.id] = asset;
+          return acc;
+        }, {} as Record<number, Asset>);
         state.total = action.payload.total;
         state.page = action.payload.page;
         state.limit = action.payload.limit;
+        state.isLoaded = true;
       })
       .addCase(fetchAssets.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch assets';
       })
+
       // Fetch Asset by ID
       .addCase(fetchAssetById.pending, (state) => {
         state.loading = true;
@@ -134,12 +144,14 @@ const assetSlice = createSlice({
       })
       .addCase(fetchAssetById.fulfilled, (state, action) => {
         state.loading = false;
+        state.assets[action.payload.id] = action.payload;
         state.currentAsset = action.payload;
       })
       .addCase(fetchAssetById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch asset';
       })
+
       // Add Asset
       .addCase(addAsset.pending, (state) => {
         state.loading = true;
@@ -147,13 +159,14 @@ const assetSlice = createSlice({
       })
       .addCase(addAsset.fulfilled, (state, action) => {
         state.loading = false;
-        state.assets.push(action.payload);
+        state.assets[action.payload.id] = action.payload;
         state.total += 1;
       })
       .addCase(addAsset.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to add asset';
       })
+
       // Update Asset
       .addCase(updateAsset.pending, (state) => {
         state.updating = true;
@@ -161,18 +174,19 @@ const assetSlice = createSlice({
       })
       .addCase(updateAsset.fulfilled, (state, action) => {
         state.updating = false;
-        const index = state.assets.findIndex(asset => asset.id === action.payload.id);
-        if (index !== -1) {
-          state.assets[index] = action.payload;
-        }
-        if (state.currentAsset?.id === action.payload.id) {
-          state.currentAsset = action.payload;
+        const asset = action.payload;
+        if (asset?.id) {
+          state.assets[asset.id] = asset;
+          if (state.currentAsset?.id === asset.id) {
+            state.currentAsset = asset;
+          }
         }
       })
       .addCase(updateAsset.rejected, (state, action) => {
         state.updating = false;
         state.error = action.error.message || 'Failed to update asset';
       })
+
       // Delete Asset
       .addCase(deleteAsset.pending, (state) => {
         state.loading = true;
@@ -180,7 +194,7 @@ const assetSlice = createSlice({
       })
       .addCase(deleteAsset.fulfilled, (state, action) => {
         state.loading = false;
-        state.assets = state.assets.filter(asset => asset.id !== action.payload);
+        delete state.assets[action.payload];
         state.total -= 1;
         if (state.currentAsset?.id === action.payload) {
           state.currentAsset = null;
@@ -194,4 +208,4 @@ const assetSlice = createSlice({
 });
 
 export const { clearError, clearCurrentAsset } = assetSlice.actions;
-export default assetSlice.reducer; 
+export default assetSlice.reducer;

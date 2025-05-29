@@ -9,7 +9,11 @@ const EditAsset: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { currentAsset: asset, loading: assetLoading, updating, error: assetError } = useSelector((state: RootState) => state.assets);
+  const numericId = id ? parseInt(id) : null;
+
+  const { assets, loading: assetLoading, updating, error: assetError } = useSelector((state: RootState) => state.assets);
+  const asset = numericId ? assets[numericId] : null;
+
   const { categories, loading: categoryLoading, error: categoryError } = useSelector((state: RootState) => state.categories);
 
   const [formData, setFormData] = useState({
@@ -26,18 +30,20 @@ const EditAsset: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchAssetById(parseInt(id)));
+    if (numericId && !asset) {
+      dispatch(fetchAssetById(numericId));
     }
-    dispatch(fetchCategories());
-  }, [dispatch, id]);
+    if (categories.length === 0) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, numericId, asset, categories.length]);
 
   useEffect(() => {
     if (asset) {
       setFormData({
         name: asset.name,
         description: asset.description,
-        categoryId: asset.categoryId !== undefined && asset.categoryId !== null ? asset.categoryId.toString() : '', 
+        categoryId: asset.categoryId?.toString() ?? '',
         purchaseDate: asset.purchaseDate,
         expiryDate: asset.expiryDate,
         warrantyPeriod: asset.warrantyPeriod.toString()
@@ -48,10 +54,9 @@ const EditAsset: React.FC = () => {
     }
   }, [asset]);
 
-  // console.log("formdata---->",formData);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,9 +64,7 @@ const EditAsset: React.FC = () => {
     if (file) {
       setImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -81,14 +84,14 @@ const EditAsset: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm() || !id) return;
+    if (!validateForm() || !numericId) return;
 
-    const formPayload = new FormData();
-    formPayload.append('asset', JSON.stringify(formData));
-    if (image) formPayload.append('file', image);
+    const payload = new FormData();
+    payload.append('asset', JSON.stringify(formData));
+    if (image) payload.append('file', image);
 
     try {
-      await dispatch(updateAsset({ id: parseInt(id), formData: formPayload }));
+      await dispatch(updateAsset({ id: numericId, formData: payload })).unwrap();
       navigate('/assets');
     } catch (err) {
       console.error('Failed to update asset:', err);
@@ -113,10 +116,10 @@ const EditAsset: React.FC = () => {
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
           {[
             { label: 'Name', name: 'name', type: 'text', placeholder: 'Office Laptop' },
-            { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description of the asset' },
+            { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description' },
             { label: 'Purchase Date', name: 'purchaseDate', type: 'date' },
             { label: 'Expiry Date', name: 'expiryDate', type: 'date' },
-            { label: 'Warranty Period (in months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
+            { label: 'Warranty Period (months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
           ].map((field) => (
             <div key={field.name}>
               <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">
@@ -131,7 +134,6 @@ const EditAsset: React.FC = () => {
                   placeholder={field.placeholder}
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
                   rows={3}
-                  required
                 />
               ) : (
                 <input
@@ -141,7 +143,6 @@ const EditAsset: React.FC = () => {
                   value={(formData as any)[field.name]}
                   onChange={handleChange}
                   placeholder={field.placeholder}
-                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
                 />
               )}
@@ -156,15 +157,12 @@ const EditAsset: React.FC = () => {
               name="categoryId"
               value={formData.categoryId}
               onChange={handleChange}
-              required
               className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
               disabled={categoryLoading}
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
+                <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </select>
             {formErrors.categoryId && <p className="text-sm text-red-600">{formErrors.categoryId}</p>}
@@ -184,7 +182,7 @@ const EditAsset: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex justify-between pt-4">
             <button
               type="button"
               onClick={() => navigate('/assets')}

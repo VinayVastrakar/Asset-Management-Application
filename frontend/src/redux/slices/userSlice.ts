@@ -32,8 +32,13 @@ export const fetchUsers = createAsyncThunk(
     if (!response.data?.users) {
       throw new Error('Malformed API response');
     }
-
-    return response.data; 
+    return response.data;
+  },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as { users: UserState };
+      return state.users.users.length === 0; // ⛔️ Cancel if users already loaded
+    }
   }
 );
 
