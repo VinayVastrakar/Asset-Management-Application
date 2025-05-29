@@ -96,11 +96,41 @@ public class AssetController {
         }
     }
 
-    @Operation(summary = "Update asset by asset_id")
-    @PutMapping("/{id}")
-    public AssetResponseDTO updateAsset(@PathVariable Long id, @RequestBody AssetRequestDTO assetRequestDTO) {
-        return assetService.updateAsset(id, assetRequestDTO);
+    @Operation(summary = "Update asset by ID (with optional image upload)")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity updateAsset(
+            @PathVariable Long id,
+            @RequestPart("asset") String assetJson,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            Authentication authentication) {
+
+        try {
+            AssetRequestDTO assetRequestDTO = objectMapper.readValue(assetJson, AssetRequestDTO.class);
+
+            // Call your service to handle update logic
+            Asset updatedAsset = assetService.updateAsset(id, assetRequestDTO);
+
+            // Handle optional image upload
+            if (file != null && !file.isEmpty()) {
+                Map<String, String> uploadResult = assetService.uploadAssetImage(file, updatedAsset);
+                updatedAsset.setImageUrl(uploadResult.get("imageUrl"));
+                updatedAsset.setImagePublicId(uploadResult.get("publicId"));
+            }
+
+            // Update lastModifiedBy field
+            String email = authentication.getName();
+            updatedAsset.setLastModifiedBy(userRepository.findByEmail(email).get());
+
+            // Save updated asset
+            updatedAsset = assetRepository.save(updatedAsset);
+            Map<String,Object> res = Map.of("data", assetMapper.toResponseDTO(updatedAsset));
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
 
     @Operation(summary = "Inactive asset by asset_id")
     @PutMapping("/inactive/{id}")

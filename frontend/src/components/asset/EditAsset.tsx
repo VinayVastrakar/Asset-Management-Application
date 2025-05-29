@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../redux/store';
-import { fetchAssetById, updateAsset } from '../../redux/slices/assetSlice';
+import { clearCurrentAsset, fetchAssetById, updateAsset } from '../../redux/slices/assetSlice';
 import { fetchCategories } from '../../redux/slices/categorySlice';
 
 const EditAsset: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { currentAsset: asset, loading: assetLoading, error: assetError } = useSelector((state: RootState) => state.assets);
+  const { currentAsset: asset, loading: assetLoading, updating, error: assetError } = useSelector((state: RootState) => state.assets);
   const { categories, loading: categoryLoading, error: categoryError } = useSelector((state: RootState) => state.categories);
 
   const [formData, setFormData] = useState({
@@ -18,8 +18,7 @@ const EditAsset: React.FC = () => {
     categoryId: '',
     purchaseDate: '',
     expiryDate: '',
-    warrantyPeriod: '',
-    status: '',
+    warrantyPeriod: ''
   });
 
   const [image, setImage] = useState<File | null>(null);
@@ -33,17 +32,15 @@ const EditAsset: React.FC = () => {
     dispatch(fetchCategories());
   }, [dispatch, id]);
 
-
   useEffect(() => {
     if (asset) {
       setFormData({
         name: asset.name,
         description: asset.description,
-        categoryId: asset.categoryId.toString(),
+        categoryId: asset.categoryId !== undefined && asset.categoryId !== null ? asset.categoryId.toString() : '', 
         purchaseDate: asset.purchaseDate,
         expiryDate: asset.expiryDate,
-        warrantyPeriod: asset.warrantyPeriod.toString(),
-        status: asset.status,
+        warrantyPeriod: asset.warrantyPeriod.toString()
       });
       if (asset.imageUrl) {
         setImagePreview(asset.imageUrl);
@@ -51,7 +48,7 @@ const EditAsset: React.FC = () => {
     }
   }, [asset]);
 
-  console.log("formdata---->",formData);
+  // console.log("formdata---->",formData);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -91,7 +88,7 @@ const EditAsset: React.FC = () => {
     if (image) formPayload.append('file', image);
 
     try {
-      await dispatch(updateAsset({ id: parseInt(id), formData: formPayload })).unwrap();
+      await dispatch(updateAsset({ id: parseInt(id), formData: formPayload }));
       navigate('/assets');
     } catch (err) {
       console.error('Failed to update asset:', err);
@@ -174,22 +171,6 @@ const EditAsset: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-            >
-              <option value="AVAILABLE">AVAILABLE</option>
-              <option value="ASSIGNED">ASSIGNED</option>
-              <option value="MAINTENANCE">MAINTENANCE</option>
-              <option value="RETIRED">RETIRED</option>
-            </select>
-          </div>
-
-          <div>
             <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Image</label>
             <input
               id="image"
@@ -213,10 +194,10 @@ const EditAsset: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={assetLoading || categoryLoading}
+              disabled={updating}
               className="bg-primary text-white px-4 py-2 text-sm font-medium rounded hover:bg-primary-dark disabled:opacity-50"
             >
-              {assetLoading ? 'Saving...' : 'Save Changes'}
+              {updating ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

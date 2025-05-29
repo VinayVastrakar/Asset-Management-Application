@@ -105,7 +105,9 @@ const App: React.FC = () => {
             path="/assets/edit/:id"
             element = {
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <EditAsset/>
+                <Layout>  
+                  <EditAsset/>
+                </Layout>
               </ProtectedRoute>
             }
           />

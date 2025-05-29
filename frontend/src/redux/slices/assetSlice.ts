@@ -19,6 +19,7 @@ export interface AssetState {
   assets: Asset[];
   currentAsset: Asset | null;
   loading: boolean;
+  updating: boolean;
   error: string | null;
   total: number;
   page: number;
@@ -29,6 +30,7 @@ const initialState: AssetState = {
   assets: [],
   currentAsset: null,
   loading: false,
+  updating: false,
   error: null,
   total: 0,
   page: 0,
@@ -61,9 +63,14 @@ export const addAsset = createAsyncThunk(
 
 export const updateAsset = createAsyncThunk(
   'assets/updateAsset',
-  async ({ id, formData }: { id: number; formData: FormData }) => {
-    const response = await assetApi.updateAsset(id, formData);
-    return response.data;
+  async ({ id, formData }: { id: number; formData: FormData }, thunkAPI) => {
+    try {
+      const response = await assetApi.updateAsset(id, formData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error in updateAsset thunk:', error);
+      return thunkAPI.rejectWithValue(error?.response?.data?.message || 'Update failed');
+    }
   }
 );
 
@@ -149,11 +156,11 @@ const assetSlice = createSlice({
       })
       // Update Asset
       .addCase(updateAsset.pending, (state) => {
-        state.loading = true;
+        state.updating = true;
         state.error = null;
       })
       .addCase(updateAsset.fulfilled, (state, action) => {
-        state.loading = false;
+        state.updating = false;
         const index = state.assets.findIndex(asset => asset.id === action.payload.id);
         if (index !== -1) {
           state.assets[index] = action.payload;
@@ -163,7 +170,7 @@ const assetSlice = createSlice({
         }
       })
       .addCase(updateAsset.rejected, (state, action) => {
-        state.loading = false;
+        state.updating = false;
         state.error = action.error.message || 'Failed to update asset';
       })
       // Delete Asset

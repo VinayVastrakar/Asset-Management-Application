@@ -34,6 +34,9 @@ const Navbar: React.FC = () => {
             <div className={dropdownClass}>
               <Link to="/assets/add" className={linkClass}>Add New Asset</Link>
               <Link to="/assets" className={linkClass}>View Assets</Link>
+              <Link to="/assets" className={linkClass}>Asset Assign</Link>
+              <Link to="/assets" className={linkClass}>Asset Retuen</Link>
+              
             </div>
           </div>
 

@@ -6,6 +6,7 @@ import com.example.Assets.Management.App.model.Category;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetAssignmentHistoryRepository;
 import com.example.Assets.Management.App.repository.AssetRepository;
+import com.example.Assets.Management.App.repository.CategoryRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class AssetService {
     private AssetRepository assetRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
     @Autowired
     private AssetMapper assetMapper;
 
@@ -79,11 +83,16 @@ public class AssetService {
         return assetMapper.toResponseDTO(savedAsset);
     }
 
-    public AssetResponseDTO updateAsset(Long id, AssetRequestDTO assetRequestDTO) {
-        Asset asset = assetMapper.toEntity(assetRequestDTO);
-        asset.setId(id);
+    public Asset updateAsset(Long id, AssetRequestDTO assetRequestDTO) {
+        Asset asset = assetRepository.findById(id).get();
+        asset.setCategory(categoryRepository.findById(assetRequestDTO.getCategoryId()).get());
+        asset.setDescription(assetRequestDTO.getDescription());
+        asset.setExpiryDate(assetRequestDTO.getExpiryDate());
+        asset.setPurchaseDate(assetRequestDTO.getPurchaseDate());
+        asset.setName(assetRequestDTO.getName());
+        asset.setWarrantyPeriod(assetRequestDTO.getWarrantyPeriod());
         Asset updatedAsset = assetRepository.save(asset);
-        return assetMapper.toResponseDTO(updatedAsset);
+        return updatedAsset;
     }
 
 
