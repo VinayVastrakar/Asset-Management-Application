@@ -67,7 +67,7 @@ public class AssetController {
 
     @Operation(summary = "Create new asset")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<AssetResponseDTO> createAssetWithImage(
+    public ResponseEntity createAssetWithImage(
             @RequestPart("asset") String assetJson,
             @RequestPart(value = "file", required = false) MultipartFile file, Authentication authentication) {
 
@@ -89,8 +89,8 @@ public class AssetController {
             // Save the asset with or without image
             asset.setLastModifiedBy(userRepository.findByEmail(changeby).get());
             Asset savedAsset = assetRepository.save(asset);
-
-            return ResponseEntity.ok(assetMapper.toResponseDTO(savedAsset));
+            Map<String,Object> res = Map.of("data", assetMapper.toResponseDTO(savedAsset));
+            return ResponseEntity.ok(res);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

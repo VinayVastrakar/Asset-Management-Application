@@ -7,12 +7,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.apache.hc.core5.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.Assets.Management.App.dto.requestDto.CategoryRequestDTO;
 
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -41,20 +43,28 @@ public class CategoryController {
 
     @PostMapping
     @Operation(summary = "Create Categories")
-    public Category createCategory(@RequestBody CategoryRequestDTO category) {
-        return categoryService.createCategory(category);
+    public ResponseEntity createCategory(@RequestBody CategoryRequestDTO category) {
+        Map<String,Object> res = new HashMap<>();
+        res.put("data", categoryService.createCategory(category));
+        return ResponseEntity.ok(res);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Categories by Id")
-    public Category updateCategory(@PathVariable Long id, @RequestBody CategoryRequestDTO category) {
-        return categoryService.updateCategory(id, category);
+    public ResponseEntity updateCategory(@PathVariable Long id, @RequestBody CategoryRequestDTO category) {
+       
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", categoryService.updateCategory(id, category));
+        response.put("message", "Update Successfull");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Categories")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.noContent().build();
+        Map<String,Object> response = new HashMap<>();
+        response.put("message","Delete Successfull" );
+        return ResponseEntity.ok(response);
     }
 }

@@ -26,7 +26,9 @@ const AddAsset: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    dispatch(fetchCategories());
+    if(categories.length === 0){
+      dispatch(fetchCategories());
+    }
   }, [dispatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -54,8 +56,6 @@ const AddAsset: React.FC = () => {
     if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
     if (!formData.expiryDate) errors.expiryDate = 'Expiry date is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
-    if (!image) errors.image = 'Image is required';
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };

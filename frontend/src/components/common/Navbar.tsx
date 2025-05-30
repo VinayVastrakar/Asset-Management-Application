@@ -33,9 +33,8 @@ const Navbar: React.FC = () => {
             <span className="hover:underline">Assets</span>
             <div className={dropdownClass}>
               <Link to="/assets/add" className={linkClass}>Add New Asset</Link>
-              <Link to="/assets" className={linkClass}>View Assets</Link>
-              <Link to="/assets" className={linkClass}>Asset Assign</Link>
-              <Link to="/assets" className={linkClass}>Asset Retuen</Link>
+              <Link to="/assets" className={linkClass}>View/Edit Asset</Link>
+              <Link to="/assets/manage" className={linkClass}>Asset Manage</Link>
               
             </div>
           </div>

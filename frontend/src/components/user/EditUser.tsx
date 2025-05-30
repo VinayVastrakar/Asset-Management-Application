@@ -16,7 +16,7 @@ const EditUser: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { currentUser, fetchLoading, updateLoading, error } = useSelector((state: RootState) => state.users);
+  const { users, currentUser, fetchLoading, updateLoading, error } = useSelector((state: RootState) => state.users);
 
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
@@ -27,10 +27,16 @@ const EditUser: React.FC = () => {
   });
 
   useEffect(() => {
-    if (id) {
+    if (!id) return;
+  
+    const existingUser = users.find(user => String(user.id) === id);
+  
+    if (existingUser) {
+      dispatch({ type: 'users/fetchUserById/fulfilled', payload: existingUser }); // mimic setting `currentUser`
+    } else {
       dispatch(fetchUserById(id));
     }
-  }, [dispatch, id]);
+  }, [dispatch, id, users]); 
   
 
   useEffect(() => {

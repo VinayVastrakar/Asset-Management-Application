@@ -1,19 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../redux/store';
-import { addCategory } from '../../redux/slices/categorySlice';
+import { fetchCategories, updateCategory } from '../../redux/slices/categorySlice';
 
-const AddCategory: React.FC = () => {
+const EditCategory: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state: RootState) => state.categories);
+  const { id } = useParams<{ id: string }>();
+  const numericId = id ? parseInt(id) : null;
+
+  const { categories, loading, error } = useSelector((state: RootState) => state.categories);
+  const category = numericId ? categories.find(cat => cat.id === numericId) : null;
 
   const [formData, setFormData] = useState({
     name: '',
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, categories.length]);
+
+  useEffect(() => {
+    if (category) {
+      setFormData({
+        name: category.name,
+      });
+    }
+  }, [category]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,20 +49,36 @@ const AddCategory: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm() || !numericId) return;
 
     try {
-      await dispatch(addCategory(formData)).unwrap();
+      await dispatch(updateCategory({ id: numericId, category: formData })).unwrap();
       navigate('/categories/manage');
     } catch (err) {
-      console.error('Failed to add category:', err);
+      console.error('Failed to update category:', err);
     }
   };
+
+  if (loading && !category) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!category) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-red-600">Category not found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-xl mx-auto">
-        <h1 className="text-3xl font-semibold mb-6 text-gray-800">Add New Category</h1>
+        <h1 className="text-3xl font-semibold mb-6 text-gray-800">Edit Category</h1>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
@@ -86,7 +120,7 @@ const AddCategory: React.FC = () => {
               disabled={loading}
               className="bg-primary text-white px-4 py-2 text-sm font-medium rounded hover:bg-primary-dark disabled:opacity-50"
             >
-              {loading ? 'Adding...' : 'Add Category'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -95,4 +129,4 @@ const AddCategory: React.FC = () => {
   );
 };
 
-export default AddCategory;
+export default EditCategory; 

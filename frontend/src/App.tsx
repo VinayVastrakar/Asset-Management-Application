@@ -17,6 +17,9 @@ import AddAsset from 'components/asset/AddAsset';
 import AssetList from 'components/asset/AssetList';
 import AssetView from 'components/asset/AssetView';
 import EditAsset from 'components/asset/EditAsset';
+import AddCategory from 'components/category/AddCategory';
+import ListCategory from 'components/category/ListCategory';
+import EditCategory from 'components/category/EditCategory';
 
 const App: React.FC = () => {
   return (
@@ -107,6 +110,36 @@ const App: React.FC = () => {
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Layout>  
                   <EditAsset/>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories/add"
+            element = {
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Layout>  
+                  <AddCategory/>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories/manage"
+            element = {
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Layout>  
+                  <ListCategory/>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories/edit/:id"
+            element = {
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Layout>  
+                  <EditCategory/>
                 </Layout>
               </ProtectedRoute>
             }
