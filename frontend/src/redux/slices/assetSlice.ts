@@ -56,6 +56,7 @@ export const fetchAssetById = createAsyncThunk(
   }
 );
 
+
 export const addAsset = createAsyncThunk(
   'assets/add',
   async (formData: FormData) => {

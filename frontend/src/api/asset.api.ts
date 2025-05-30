@@ -63,4 +63,14 @@ export const assetApi = {
     const response = await api.delete<ApiResponse<null>>(`/api/asset/${id}`);
     return response.data;
   },
+   assignAssetToUser: async (assetId: number, userId: number) => {
+    const response = await api.put<ApiResponse<Asset>>(
+      `/api/asset/${assetId}/reassign`,
+      null, // No request body
+      {
+        params: { userId },
+      }
+    );
+    return response.data;
+  },
 }; 

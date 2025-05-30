@@ -186,7 +186,7 @@ public class AssetController {
     @PutMapping("/{id}/reassign")
     public ResponseEntity<AssetResponseDTO> reassignAsset(
             @PathVariable Long id,
-            @RequestParam Long newUserId,
+            @RequestParam Long userId,
             Authentication authentication) {
         String username = authentication.getName();
         AssetResponseDTO response = assetService.reassignAsset(id, newUserId, username);
