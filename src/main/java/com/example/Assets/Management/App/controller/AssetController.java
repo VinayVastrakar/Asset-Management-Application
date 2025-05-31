@@ -189,7 +189,7 @@ public class AssetController {
             @RequestParam Long userId,
             Authentication authentication) {
         String username = authentication.getName();
-        AssetResponseDTO response = assetService.reassignAsset(id, newUserId, username);
+        AssetResponseDTO response = assetService.reassignAsset(id, userId, username);
         return ResponseEntity.ok(response);
     }
 

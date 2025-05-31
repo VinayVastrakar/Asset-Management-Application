@@ -73,4 +73,9 @@ export const assetApi = {
     );
     return response.data;
   },
+  returnAsset: async (id : number) =>{
+    const response = await api.put(`api/asset/${id}/return `);
+    return response.data;
+  }
+
 }; 

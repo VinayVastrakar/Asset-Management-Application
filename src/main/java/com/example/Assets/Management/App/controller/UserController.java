@@ -20,6 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import java.util.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/user")
@@ -50,7 +53,6 @@ public class UserController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Users> usersPage = userRepository.findAll(pageable);
-        System.out.println("------------>"+usersPage);
         List<Map<String, Object>> userList = new ArrayList<>();
         for (Users user : usersPage.getContent()) {
             Map<String, Object> userMap = new HashMap<>();
@@ -69,6 +71,28 @@ public class UserController {
             "totalPages", usersPage.getTotalPages()
         );
     }
+
+    @GetMapping("/active")
+    @Operation(summary = "Get All Users (Paginated)")
+    public Map<String, Object> getActivatedUser(
+    ) {
+        List<Users> usersPage = userRepository.findAllActiveUsers();
+        List<Map<String, Object>> userList = new ArrayList<>();
+        for (Users user : usersPage) {
+            Map<String, Object> userMap = new HashMap<>();
+            userMap.put("id", user.getId());
+            userMap.put("email", user.getEmail());
+            userMap.put("name", user.getName());
+            userMap.put("role", user.getRole());
+            userMap.put("status",user.getStatus());
+            userList.add(userMap);
+        }
+
+        return Map.of(
+            "users", userList
+        );
+    }
+    
 
     @GetMapping("/{id}")
     @Operation(summary = "Get User By ID")

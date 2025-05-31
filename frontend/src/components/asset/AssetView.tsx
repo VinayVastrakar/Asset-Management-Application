@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
-import { fetchAssetById, assignAssetToUser } from '../../redux/slices/assetSlice';
+import { fetchAssetById } from '../../redux/slices/assetSlice';
 import axios from 'axios';
 import api from 'api/config';
 import { assetApi } from 'api/asset.api';
+import userApi from 'api/user.api';
 
 const AssetView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,10 +28,33 @@ const AssetView: React.FC = () => {
   const openModal = async () => {
     setModalOpen(true);
     try {
-      const res = await axios.get('/api/users');
-      setUsers(res.data);
+      const res = await userApi.getActiveUsers();
+      setUsers(res.data.users);
     } catch (err) {
       console.error('Failed to load users', err);
+    }
+  };
+
+  const returnAsset = async (id: number) => {
+    const confirmed = window.confirm('Are you sure you want to return this asset?');
+    if (!confirmed) return;
+  
+    try {
+      // Optionally show a loading state
+      setAssigning(true);
+  
+      await assetApi.returnAsset(id);
+  
+      // Optionally show success message
+      alert('Asset successfully returned.');
+  
+      // Refresh asset details after returning
+      dispatch(fetchAssetById(id));
+    } catch (err) {
+      console.error('Failed to return asset', err);
+      alert('Failed to return the asset. Please try again.');
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -88,7 +112,7 @@ const AssetView: React.FC = () => {
 
             {asset.status === 'ASSIGNED' && (
               <button
-                onClick={() => navigate(`/assets/return/${asset.id}`)}
+                onClick={()=> returnAsset(asset.id)}
                 className="px-4 py-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition"
               >
                 Return Asset

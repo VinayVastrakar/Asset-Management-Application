@@ -31,6 +31,9 @@ const userApi = {
   getUsers: async (params: UserQueryParams) =>
     await api.get<UserListResponse>('/api/user', { params }),
 
+  getActiveUsers: async () =>
+    await api.get('/api/user/active'),
+
   getUserById: async (id: string) =>
     await api.get<User>(`/api/user/${id}`),
 
