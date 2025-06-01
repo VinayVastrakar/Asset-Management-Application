@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { dashboardApi, DashboardStats } from "../../api/dashboard.api";
 import { Alert } from "../common/Alert";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Dashboard: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -17,10 +19,11 @@ const Dashboard: React.FC = () => {
         setError(null);
         const response = await dashboardApi.getStats();
         setStats(response.data.data);
+        toast.success('Dashboard data loaded successfully');
       } catch (err: any) {
-        setError(
-          err.response?.data?.message || "Failed to fetch dashboard statistics"
-        );
+        const message = err.response?.data?.message || "Failed to fetch dashboard statistics";
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -125,6 +128,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop />
     </div>
   );
 };
