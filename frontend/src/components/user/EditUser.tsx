@@ -16,28 +16,24 @@ const EditUser: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { users, currentUser, fetchLoading, updateLoading, error } = useSelector((state: RootState) => state.users);
+  const { currentUser, error } = useSelector((state: RootState) => state.users);
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
     mobileNo: '',
-    role: '',
+    role: 'USER',
     status: 'Active',
   });
 
   useEffect(() => {
-    if (!id) return;
-  
-    const existingUser = users.find(user => String(user.id) === id);
-  
-    if (existingUser) {
-      dispatch({ type: 'users/fetchUserById/fulfilled', payload: existingUser }); // mimic setting `currentUser`
-    } else {
-      dispatch(fetchUserById(id));
+    if (id) {
+      setFetchLoading(true);
+      dispatch(fetchUserById(id)).finally(() => setFetchLoading(false));
     }
-  }, [dispatch, id, users]); 
-  
+  }, [dispatch, id]);
 
   useEffect(() => {
     if (currentUser) {
@@ -51,7 +47,6 @@ const EditUser: React.FC = () => {
     }
   }, [currentUser]);
 
-  
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -60,13 +55,17 @@ const EditUser: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setUpdateLoading(true);
     e.preventDefault();
     if (!id) return;
+
     try {
       await dispatch(updateUser({ id, userData: formData })).unwrap();
       navigate('/users');
     } catch (err) {
       console.error('Error updating user:', err);
+    } finally {
+      setUpdateLoading(false);
     }
   };
 
@@ -137,7 +136,7 @@ const EditUser: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-between">
-          <button
+            <button
               type="submit"
               disabled={updateLoading}
               className="bg-primary text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hover:bg-primary-dark disabled:opacity-50"

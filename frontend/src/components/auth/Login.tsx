@@ -92,8 +92,8 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <img
-            className="mx-auto h-20 w-auto"
-            src="https://gloitel.in/static/images/gloitel-logo-removebg-preview.png"
+            className="mx-auto h-28 w-auto"
+            src="/Assets/ASM.png"
             alt="Company Logo"
           />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

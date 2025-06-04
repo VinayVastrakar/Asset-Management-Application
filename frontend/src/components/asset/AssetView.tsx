@@ -49,7 +49,8 @@ const AssetView: React.FC = () => {
       alert('Asset successfully returned.');
   
       // Refresh asset details after returning
-      dispatch(fetchAssetById(id));
+      // dispatch(fetchAssetById(id));
+      navigate('/assets');
     } catch (err) {
       console.error('Failed to return asset', err);
       alert('Failed to return the asset. Please try again.');
@@ -64,7 +65,8 @@ const AssetView: React.FC = () => {
     try {
       await assetApi.assignAssetToUser(asset.id, selectedUser);
       setModalOpen(false);
-      dispatch(fetchAssetById(asset.id)); // refresh asset view
+      // dispatch(fetchAssetById(asset.id)); // refresh asset view
+      navigate('/assets');
     } catch (err) {
       console.error('Failed to assign user', err);
     } finally {

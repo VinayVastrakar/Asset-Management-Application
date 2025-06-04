@@ -1,49 +1,63 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../../redux/store';
-import {
-  fetchAssets,
-  Asset,
-  inactiveAsset,
-  activeAsset,
-} from '../../redux/slices/assetSlice';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { assetApi } from '../../api/asset.api';
+
+interface Asset {
+  id: number;
+  name: string;
+  description: string;
+  categoryId: number;
+  categoryName: string;
+  purchaseDate: string;
+  expiryDate: string;
+  warrantyPeriod: number;
+  assignedToUserName: string;
+  status: string;
+  imageUrl?: string;
+} 
 
 const AssetList: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const { assets, loading, error, isLoaded } = useSelector((state: RootState) => state.assets);
-
-  const assetList = useMemo(() => Object.values(assets), [assets]);
-
-  const headers = useMemo(
-    () => ['Image', 'Asset Name', 'Assigned User', 'Status', 'Purchase Date', 'Expiry Date', 'Actions'],
-    []
-  );
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await assetApi.getAssets({ page: 0, limit: 10 });
+      setAssets(response.data.data); // assuming `data` is in `response.data.data`
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch assets');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!isLoaded) {  // <-- Only fetch if not loaded
-      dispatch(fetchAssets({ page: 0, limit: 10 }));
-    }
-  }, [dispatch, isLoaded]);
+    fetchData();
+  }, [fetchData]);
 
   const handleStatusToggle = useCallback(
     async (id: number, status: string) => {
       const isInactive = status === 'INACTIVE';
-      const action = isInactive ? activeAsset : inactiveAsset;
       const verb = isInactive ? 'activate' : 'inactivate';
-
+  
       if (window.confirm(`Are you sure you want to ${verb} this asset?`)) {
         try {
-          await dispatch(action(id)).unwrap();
-          dispatch(fetchAssets({ page: 0, limit: 10 }));
+          if (isInactive) {
+            await assetApi.activeAsset(id);
+          } else {
+            await assetApi.inactiveAsset(id);
+          }
+          await fetchData(); // Refresh list
         } catch (err) {
           console.error(`Failed to ${verb} asset:`, err);
         }
       }
     },
-    [dispatch]
+    [fetchData]
   );
 
   const renderStatusBadge = useCallback((status: string) => {
@@ -62,6 +76,11 @@ const AssetList: React.FC = () => {
       </span>
     );
   }, []);
+
+  const headers = useMemo(
+    () => ['Image', 'Asset Name', 'Assigned User', 'Status', 'Purchase Date', 'Expiry Date', 'Actions'],
+    []
+  );
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
@@ -92,14 +111,14 @@ const AssetList: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {assetList.length === 0 ? (
+            {assets.length === 0 ? (
               <tr>
                 <td colSpan={headers.length} className="px-6 py-4 text-center text-gray-500">
                   No assets found.
                 </td>
               </tr>
             ) : (
-              assetList.map((asset) => {
+              assets.map((asset) => {
                 const toggleLabel =
                   asset.status === 'INACTIVE'
                     ? 'Activate'
