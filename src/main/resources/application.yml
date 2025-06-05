@@ -6,6 +6,11 @@ spring:
     username: gloitel
     password: gloitel123
     driver-class-name: org.postgresql.Driver
+  # datasource:
+  #   url: jdbc:postgresql://localhost:5432/assetdb
+  #   username: postgres
+  #   password: 1234
+  #   driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
