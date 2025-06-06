@@ -4,6 +4,7 @@ import Dashboard from '../components/dashboard/Dashboard';
 import UserRoutes from './UserRoutes';
 import AssetRoutes from './AssetRoutes';
 import CategoryRoutes from './CategoryRoutes';
+import PurchaseHistoryRoutes from './PurchaseHistoryRoutes';
 import ProtectedRoute from './ProtectedRoute';
 
 const AppRoutes = () => {
@@ -30,6 +31,10 @@ const AppRoutes = () => {
       <Route path="/categories/*" element={
         <ProtectedRoute allowedRoles={['ADMIN']}>
             <CategoryRoutes />
+        </ProtectedRoute>} />
+      <Route path="/purchase-history/*" element={
+        <ProtectedRoute allowedRoles={['ADMIN']}>
+            <PurchaseHistoryRoutes />
         </ProtectedRoute>} />
     </Routes>
   );

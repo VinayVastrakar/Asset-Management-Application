@@ -14,4 +14,7 @@ public class PurchaseHistoryRequestDTO {
     private LocalDate purchaseDate;
     private Double amount;
     private String vendor;
+    private String invoiceNumber;
+    private Integer warrantyPeriod;
+    private String description;
 }

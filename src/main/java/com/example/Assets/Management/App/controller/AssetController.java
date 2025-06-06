@@ -50,11 +50,11 @@ public class AssetController {
     @GetMapping
     public ResponseEntity getAllAssets(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "10") int limit,
         @RequestParam(required = false) Long categoryId,
         @RequestParam(required = false) String status
     ) {
-        PaginatedResponse<AssetResponseDTO> paginatedAssets = assetService.getAllAssets(page, size, categoryId, status);
+        PaginatedResponse<AssetResponseDTO> paginatedAssets = assetService.getAllAssets(page, limit, categoryId, status);
 
         ApiResponse<PaginatedResponse<AssetResponseDTO>> response =
             new ApiResponse<>(true, "Assets fetched successfully", paginatedAssets);

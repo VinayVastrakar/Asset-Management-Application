@@ -42,8 +42,8 @@ const Navbar: React.FC = () => {
           <div className={navItemClass}>
             <span className="hover:underline">Purchase History</span>
             <div className={dropdownClass}>
-              <Link to="/purchase-history/new" className={linkClass}>New Purchase</Link>
-              <Link to="/purchase-history/list" className={linkClass}>View Purchases</Link>
+              <Link to="/purchase-history/add" className={linkClass}>New Purchase</Link>
+              <Link to="/purchase-history" className={linkClass}>View Purchases</Link>
               <Link to="/purchase-history/reports" className={linkClass}>Purchase Reports</Link>
             </div>
           </div>

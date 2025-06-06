@@ -41,8 +41,8 @@ public class PurchaseHistoryService {
         PurchaseHistory ph = new PurchaseHistory();
         ph.setAsset(asset);
         ph.setPurchaseDate(dto.getPurchaseDate());
-        ph.setAmount(dto.getAmount());
-        ph.setVendor(dto.getVendor());
+        ph.setPurchasePrice(dto.getAmount());
+        ph.setVendorName(dto.getVendor());
         PurchaseHistory saved = purchaseHistoryRepository.save(ph);
         return toDTO(saved);
     }
@@ -57,8 +57,8 @@ public class PurchaseHistoryService {
         dto.setAssetId(ph.getAsset().getId());
         dto.setAssetName(ph.getAsset().getName());
         dto.setPurchaseDate(ph.getPurchaseDate());
-        dto.setAmount(ph.getAmount());
-        dto.setVendor(ph.getVendor());
+        dto.setAmount(ph.getPurchasePrice());
+        dto.setVendor(ph.getVendorName());
         return dto;
     }
 }
