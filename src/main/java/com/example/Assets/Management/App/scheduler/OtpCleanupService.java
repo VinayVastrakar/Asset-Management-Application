@@ -1,4 +1,4 @@
-package com.example.Assets.Management.App.service;
+package com.example.Assets.Management.App.scheduler;
 
 import com.example.Assets.Management.App.repository.OtpTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class OtpCleanupService {
 //        System.out.println("Cleaned up " + expiredTokens.size() + " expired OTPs");
 //    }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 12 * * *")
     public void cleanExpiredOtps() {
         otpTokenRepository.deleteByExpiryBefore(LocalDateTime.now());
     }
