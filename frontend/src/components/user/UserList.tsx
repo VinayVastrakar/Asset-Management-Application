@@ -10,7 +10,7 @@ const UserList: React.FC = () => {
   const dispatch = useDispatch();
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ const UserList: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await userApi.getUsers({ page, limit, search: searchTerm });
+      const response = await userApi.getUsers({ page: page - 1, limit, search: searchTerm });
       setUsers(response.data.users);
       setTotal(response.data.totalItems);
     } catch (err) {

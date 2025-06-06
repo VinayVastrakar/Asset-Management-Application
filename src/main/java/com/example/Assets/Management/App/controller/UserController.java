@@ -49,10 +49,17 @@ public class UserController {
     @Operation(summary = "Get All Users (Paginated)")
     public Map<String, Object> getUserDetails(
         @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "") String search
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Users> usersPage = userRepository.findAll(pageable);
+        Page<Users> usersPage;
+        if (search.isEmpty()) {
+            usersPage = userRepository.findAll(pageable);
+        } else {
+            usersPage = userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(search, search, pageable);
+        }
+
         List<Map<String, Object>> userList = new ArrayList<>();
         for (Users user : usersPage.getContent()) {
             Map<String, Object> userMap = new HashMap<>();

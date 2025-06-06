@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.example.Assets.Management.App.Enums.Role;
+
 
 
 @Repository
@@ -19,5 +21,11 @@ public interface UserRepository extends JpaRepository<Users, Long> {
 
     @Query(nativeQuery = true, value = "SELECT * FROM users where status='Active' ORDER BY name")
     List<Users> findAllActiveUsers();
+
+    Page<Users> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, Pageable pageable);
+
+    List<Users> findByRole(Role role);
+
+
 
 }

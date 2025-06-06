@@ -50,15 +50,28 @@ public class AssetService {
     @Autowired
     private AssetAssignmentHistoryRepository assignmentHistoryRepository;
 
-    public PaginatedResponse<AssetResponseDTO> getAllAssets(int page, int size) {
+    public PaginatedResponse<AssetResponseDTO> getAllAssets(int page, int size, Long categoryId, String status) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Asset> assets = assetRepository.findAll(pageable);
-    
+        Page<Asset> assets;
+        Category category = null;
+        if(categoryId != null){
+            category = categoryRepository.findById(categoryId).orElse(null);
+        }
+        if (categoryId != null && status != null) {
+            assets = assetRepository.findByCategoryAndStatus(category, status, pageable);
+        } else if (categoryId != null) {
+            assets = assetRepository.findByCategory(category, pageable);
+        } else if (status != null) {
+            assets = assetRepository.findByStatus(status, pageable);
+        } else {
+            assets = assetRepository.findAll(pageable);
+        }
+
         List<AssetResponseDTO> assetResponseDTOList = assets.getContent().stream()
                 .map(assetMapper::toResponseDTO)
                 .toList();
-    
-        return new PaginatedResponse<AssetResponseDTO>(
+
+        return new PaginatedResponse<>(
             assetResponseDTOList,
             assets.getTotalElements(),
             assets.getNumber(),

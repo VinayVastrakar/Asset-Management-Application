@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { RootState, AppDispatch } from '../../redux/store';
-import { clearCurrentAsset, fetchAssetById, updateAsset } from '../../redux/slices/assetSlice';
-import { fetchCategories } from '../../redux/slices/categorySlice';
+import { assetApi } from '../../api/asset.api';
+import { categoryApi, Category } from '../../api/category.api';
 
 const EditAsset: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const numericId = id ? parseInt(id) : null;
 
-  const { assets, loading: assetLoading, updating, error: assetError } = useSelector((state: RootState) => state.assets);
-  const asset = numericId ? assets[numericId] : null;
-
-  const { categories, loading: categoryLoading, error: categoryError } = useSelector((state: RootState) => state.categories);
+  const [asset, setAsset] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -30,13 +30,32 @@ const EditAsset: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (numericId && !asset) {
-      dispatch(fetchAssetById(numericId));
-    }
-    if (categories.length === 0) {
-      dispatch(fetchCategories());
-    }
-  }, [dispatch, numericId, asset, categories.length]);
+    const fetchData = async () => {
+      if (numericId) {
+        setLoading(true);
+        try {
+          const response = await assetApi.getAssetById(numericId);
+          setAsset(response);
+        } catch (err: any) {
+          setError(err.message || 'Failed to fetch asset');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      setCategoryLoading(true);
+      try {
+        const response = await categoryApi.getCategories();
+        setCategories(response);
+      } catch (err: any) {
+        setCategoryError(err.message || 'Failed to fetch categories');
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [numericId]);
 
   useEffect(() => {
     if (asset) {
@@ -90,15 +109,18 @@ const EditAsset: React.FC = () => {
     payload.append('asset', JSON.stringify(formData));
     if (image) payload.append('file', image);
 
+    setUpdating(true);
     try {
-      await dispatch(updateAsset({ id: numericId, formData: payload })).unwrap();
+      await assetApi.updateAsset(numericId, payload);
       navigate('/assets');
-    } catch (err) {
-      console.error('Failed to update asset:', err);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update asset');
+    } finally {
+      setUpdating(false);
     }
   };
 
-  if (assetLoading && !asset) {
+  if (loading && !asset) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
@@ -107,9 +129,9 @@ const EditAsset: React.FC = () => {
       <div className="max-w-xl mx-auto">
         <h1 className="text-3xl font-semibold mb-6 text-gray-800">Edit Asset</h1>
 
-        {(assetError || categoryError) && (
+        {(error || categoryError) && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
-            {assetError || categoryError}
+            {error || categoryError}
           </div>
         )}
 
