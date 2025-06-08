@@ -17,12 +17,11 @@ const AddPurchaseHistory: React.FC = () => {
   const [formData, setFormData] = useState({
     assetId: '',
     purchaseDate: '',
-    purchasePrice: '',
-    vendorName: '',
+    amount: '',
+    vendor: '',
     invoiceNumber: '',
     warrantyPeriod: '',
-    description: '',
-    status: 'ACTIVE'
+    description: ''
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -49,8 +48,8 @@ const AddPurchaseHistory: React.FC = () => {
     const errors: Record<string, string> = {};
     if (!formData.assetId) errors.assetId = 'Asset is required';
     if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
-    if (!formData.purchasePrice) errors.purchasePrice = 'Purchase price is required';
-    if (!formData.vendorName) errors.vendorName = 'Vendor name is required';
+    if (!formData.amount) errors.amount = 'Purchase price is required';
+    if (!formData.vendor) errors.vendor = 'Vendor name is required';
     if (!formData.invoiceNumber) errors.invoiceNumber = 'Invoice number is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
 
@@ -67,7 +66,7 @@ const AddPurchaseHistory: React.FC = () => {
       await purchaseHistoryApi.createPurchaseHistory({
         ...formData,
         assetId: Number(formData.assetId),
-        purchasePrice: Number(formData.purchasePrice),
+        amount: Number(formData.amount),
         warrantyPeriod: Number(formData.warrantyPeriod)
       });
       navigate('/purchase-history');
@@ -131,39 +130,39 @@ const AddPurchaseHistory: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="purchasePrice" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
               Purchase Price
             </label>
             <input
               type="number"
-              id="purchasePrice"
-              name="purchasePrice"
-              value={formData.purchasePrice}
+              id="amount"
+              name="amount"
+              value={formData.amount}
               onChange={handleChange}
               placeholder="0.00"
               step="0.01"
               className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.purchasePrice ? 'border-red-500' : 'border-gray-300'
+                formErrors.amount ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {formErrors.purchasePrice && <p className="text-sm text-red-600">{formErrors.purchasePrice}</p>}
+            {formErrors.amount && <p className="text-sm text-red-600">{formErrors.amount}</p>}
           </div>
 
           <div>
-            <label htmlFor="vendorName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mb-1">
               Vendor Name
             </label>
             <input
               type="text"
-              id="vendorName"
-              name="vendorName"
-              value={formData.vendorName}
+              id="vendor"
+              name="vendor"
+              value={formData.vendor}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.vendorName ? 'border-red-500' : 'border-gray-300'
+                formErrors.vendor ? 'border-red-500' : 'border-gray-300'
               }`}
             />
-            {formErrors.vendorName && <p className="text-sm text-red-600">{formErrors.vendorName}</p>}
+            {formErrors.vendor && <p className="text-sm text-red-600">{formErrors.vendor}</p>}
           </div>
 
           <div>

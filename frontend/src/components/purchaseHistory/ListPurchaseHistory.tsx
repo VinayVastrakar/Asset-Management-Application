@@ -11,7 +11,7 @@ const ListPurchaseHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [limit] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(1);
   const [assetId, setAssetId] = useState<number | undefined>();
   const [status, setStatus] = useState<string | undefined>();
   const [assets, setAssets] = useState<{ id: number; name: string }[]>([]);
@@ -30,8 +30,9 @@ const ListPurchaseHistory: React.FC = () => {
     setError(null);
     try {
       const response = await purchaseHistoryApi.getPurchaseHistories({ page, limit, assetId, status });
-      setPurchaseHistories(response.data);
-      setTotal(response.total);
+      setPurchaseHistories(response.content);
+      setTotal(response.size);
+      console.log(response);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch purchase histories');
     } finally {
@@ -147,8 +148,8 @@ const ListPurchaseHistory: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(history.purchaseDate).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">${history.purchasePrice}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{history.vendorName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">${history.amount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{history.vendor}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{history.invoiceNumber}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

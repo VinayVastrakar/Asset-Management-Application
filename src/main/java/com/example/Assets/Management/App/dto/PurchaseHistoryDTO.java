@@ -1,6 +1,8 @@
-package com.example.Assets.Management.App.dto;
+ package com.example.Assets.Management.App.dto;
 
 import com.example.Assets.Management.App.model.PurchaseHistory;
+
+import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDate;
 

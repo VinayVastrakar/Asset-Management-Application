@@ -6,8 +6,8 @@ export interface PurchaseHistory {
   assetId: number;
   assetName: string;
   purchaseDate: string;
-  purchasePrice: number;
-  vendorName: string;
+  amount: number;
+  vendor: string;
   invoiceNumber: string;
   warrantyPeriod: number;
   description?: string;

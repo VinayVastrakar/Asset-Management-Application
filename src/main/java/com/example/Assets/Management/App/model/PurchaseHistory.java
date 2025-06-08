@@ -37,4 +37,7 @@ public class PurchaseHistory {
     @Column(length = 1000)
     private String description;
 
+    @ManyToOne
+    private Users lastChangeBy;
+
 }

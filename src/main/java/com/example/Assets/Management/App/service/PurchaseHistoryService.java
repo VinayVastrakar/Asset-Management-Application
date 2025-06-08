@@ -1,14 +1,22 @@
 package com.example.Assets.Management.App.service;
 
+import com.example.Assets.Management.App.dto.mapper.PurchaseHistoryMapper;
 import com.example.Assets.Management.App.dto.requestDto.PurchaseHistoryRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.model.PurchaseHistory;
+import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,48 +25,52 @@ import java.util.stream.Collectors;
 public class PurchaseHistoryService {
     private final PurchaseHistoryRepository purchaseHistoryRepository;
     private final AssetRepository assetRepository;
+    private final PurchaseHistoryMapper purchaseHistoryMapper;
 
-    public PurchaseHistoryService(PurchaseHistoryRepository purchaseHistoryRepository, AssetRepository assetRepository) {
+    public PurchaseHistoryService(PurchaseHistoryRepository purchaseHistoryRepository, 
+                                AssetRepository assetRepository,
+                                PurchaseHistoryMapper purchaseHistoryMapper) {
         this.purchaseHistoryRepository = purchaseHistoryRepository;
         this.assetRepository = assetRepository;
+        this.purchaseHistoryMapper = purchaseHistoryMapper;
     }
 
-    public List<PurchaseHistoryResponseDTO> getAll() {
-        return purchaseHistoryRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+    public Page<PurchaseHistoryResponseDTO> getAll(int page, int size, String[] sort) {
+        Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+        
+        return purchaseHistoryRepository.findAll(pageable)
+                .map(purchaseHistoryMapper::toResponseDTO);
     }
 
-    public List<PurchaseHistoryResponseDTO> getByAssetId(Long assetId) {
+    public Page<PurchaseHistoryResponseDTO> getByAssetId(Long assetId, int page, int size, String[] sort) {
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new EntityNotFoundException("Asset not found with ID: " + assetId));
 
-        return purchaseHistoryRepository.findByAsset(asset).stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+        
+        return purchaseHistoryRepository.findByAsset(asset, pageable)
+                .map(purchaseHistoryMapper::toResponseDTO);
     }
 
-    public PurchaseHistoryResponseDTO create(PurchaseHistoryRequestDTO dto) {
-        Asset asset = assetRepository.findById(dto.getAssetId()).orElseThrow();
-        PurchaseHistory ph = new PurchaseHistory();
+    public PurchaseHistoryResponseDTO create(PurchaseHistoryRequestDTO requestDto, Users u) {
+        Asset asset = assetRepository.findById(requestDto.getAssetId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found"));
+        
+        PurchaseHistory ph = purchaseHistoryMapper.fromRequestDTO(requestDto);
         ph.setAsset(asset);
-        ph.setPurchaseDate(dto.getPurchaseDate());
-        ph.setPurchasePrice(dto.getAmount());
-        ph.setVendorName(dto.getVendor());
+        ph.setLastChangeBy(u);
         PurchaseHistory saved = purchaseHistoryRepository.save(ph);
-        return toDTO(saved);
+        return purchaseHistoryMapper.toResponseDTO(saved);
     }
 
     public void delete(Long id) {
         purchaseHistoryRepository.deleteById(id);
     }
 
+    // Optional: Keep this method if you still need it elsewhere
     private PurchaseHistoryResponseDTO toDTO(PurchaseHistory ph) {
-        PurchaseHistoryResponseDTO dto = new PurchaseHistoryResponseDTO();
-        dto.setId(ph.getId());
-        dto.setAssetId(ph.getAsset().getId());
-        dto.setAssetName(ph.getAsset().getName());
-        dto.setPurchaseDate(ph.getPurchaseDate());
-        dto.setAmount(ph.getPurchasePrice());
-        dto.setVendor(ph.getVendorName());
-        return dto;
+        return purchaseHistoryMapper.toResponseDTO(ph);
     }
 }

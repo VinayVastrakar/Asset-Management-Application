@@ -35,4 +35,8 @@ public class Asset {
 
     @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL)
     private List<AssetAssignmentHistory> assignmentHistory = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL)
+    private List<PurchaseHistory> purchaseHistories = new ArrayList<>();
+
 }

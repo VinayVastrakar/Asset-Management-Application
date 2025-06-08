@@ -3,12 +3,14 @@ package com.example.Assets.Management.App.dto.requestDto;
 import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class PurchaseHistoryRequestDTO {
     private Long assetId;
     private LocalDate purchaseDate;

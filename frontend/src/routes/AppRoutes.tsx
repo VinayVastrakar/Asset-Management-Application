@@ -1,8 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Dashboard from '../components/dashboard/Dashboard';
-import UserRoutes from './UserRoutes';
-import AssetRoutes from './AssetRoutes';
+import UserRoutes from './userRoutes';
+import AssetRoutes from './assetRoutes';
 import CategoryRoutes from './CategoryRoutes';
 import PurchaseHistoryRoutes from './PurchaseHistoryRoutes';
 import ProtectedRoute from './ProtectedRoute';
