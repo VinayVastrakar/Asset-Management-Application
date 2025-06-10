@@ -1,5 +1,6 @@
 import api from './config';
 import { ApiResponse } from '../types/api.types';
+import { Api } from '@reduxjs/toolkit/query';
 
 export interface PurchaseHistory {
   id: number;
@@ -12,6 +13,13 @@ export interface PurchaseHistory {
   warrantyPeriod: number;
   description?: string;
   status: string;
+}
+
+export interface PurchaseHistoryResponse{
+    content?:[];
+    size?:number;
+    totalElements?:number;
+    totalPages?:number;
 }
 
 export interface PurchaseHistoryQueryParams {
@@ -27,6 +35,12 @@ export const purchaseHistoryApi = {
     const response = await api.get<ApiResponse<PurchaseHistory[]>>('/api/purchase-history', { params });
     return response.data;
   },
+
+  // getPurchaseHistoryByAssetId : async (params: PurchaseHistoryQueryParams) => {
+  //   console.log("may yaha pauch gya");
+  //   const response = await api.get<ApiResponse<PurchaseHistory[]>>(`/api/purchase-history/asset/${params.assetId}`,{params});
+  //   return response.data;
+  // },
 
   getPurchaseHistoryById: async (id: number) => {
     const response = await api.get<PurchaseHistory>(`/api/purchase-history/${id}`);

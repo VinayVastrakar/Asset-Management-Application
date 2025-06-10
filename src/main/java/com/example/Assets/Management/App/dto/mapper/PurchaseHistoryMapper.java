@@ -64,7 +64,10 @@ public class PurchaseHistoryMapper {
                 .assetId(entity.getAsset().getId())
                 .assetName(entity.getAsset().getName())
                 .purchaseDate(entity.getPurchaseDate())
-                .amount(entity.getPurchasePrice())      // Note: mapping 'purchasePrice' to 'amount'
+                .invoiceNumber(entity.getInvoiceNumber())
+                .amount(entity.getPurchasePrice()) 
+                .description(entity.getDescription())   // Note: mapping 'purchasePrice' to 'amount'
+                .warrantyPeriod(entity.getWarrantyPeriod())
                 .vendor(entity.getVendorName())         // Note: mapping 'vendorName' to 'vendor'
                 .build();
     }

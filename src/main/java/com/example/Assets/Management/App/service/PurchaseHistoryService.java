@@ -69,6 +69,33 @@ public class PurchaseHistoryService {
         purchaseHistoryRepository.deleteById(id);
     }
 
+    public PurchaseHistoryResponseDTO getById(Long id) {
+        PurchaseHistory purchaseHistory = purchaseHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Purchase History not found with ID: " + id));
+        return purchaseHistoryMapper.toResponseDTO(purchaseHistory);
+    }
+
+    public PurchaseHistoryResponseDTO update(Long id, PurchaseHistoryRequestDTO requestDto, Users user) {
+        PurchaseHistory existingHistory = purchaseHistoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Purchase History not found with ID: " + id));
+
+        Asset asset = assetRepository.findById(requestDto.getAssetId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found"));
+
+        // Update the existing purchase history with new values
+        existingHistory.setAsset(asset);
+        existingHistory.setPurchaseDate(requestDto.getPurchaseDate());
+        existingHistory.setPurchasePrice(requestDto.getAmount());
+        existingHistory.setVendorName(requestDto.getVendor());
+        existingHistory.setInvoiceNumber(requestDto.getInvoiceNumber());
+        existingHistory.setWarrantyPeriod(requestDto.getWarrantyPeriod());
+        existingHistory.setDescription(requestDto.getDescription());
+        existingHistory.setLastChangeBy(user);
+
+        PurchaseHistory updated = purchaseHistoryRepository.save(existingHistory);
+        return purchaseHistoryMapper.toResponseDTO(updated);
+    }
+
     // Optional: Keep this method if you still need it elsewhere
     private PurchaseHistoryResponseDTO toDTO(PurchaseHistory ph) {
         return purchaseHistoryMapper.toResponseDTO(ph);

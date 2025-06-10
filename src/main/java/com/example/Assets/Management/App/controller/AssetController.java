@@ -62,6 +62,23 @@ public class AssetController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get all assets")
+    @GetMapping("/unpurchase-asset")
+    public ResponseEntity getAssetsNotInPurchaseHistory(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int limit,
+        @RequestParam(required = false) Long categoryId,
+        @RequestParam(required = false) String status
+    ) {
+        PaginatedResponse<AssetResponseDTO> paginatedAssets = assetService.getAssetsNotInPurchaseHistory(page, limit);
+
+        ApiResponse<PaginatedResponse<AssetResponseDTO>> response =
+            new ApiResponse<>(true, "Assets fetched successfully", paginatedAssets);
+
+        return ResponseEntity.ok(response);
+    }
+
+
     @Operation(summary = "Get asset by ID")
     @GetMapping("/{id}")
     public ResponseEntity<AssetResponseDTO> getAssetById(@PathVariable Long id) {

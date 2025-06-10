@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PurchaseHistory {
+public class    PurchaseHistory {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

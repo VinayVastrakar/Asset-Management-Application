@@ -9,7 +9,7 @@ const ListPurchaseHistory: React.FC = () => {
   const [purchaseHistories, setPurchaseHistories] = useState<PurchaseHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [total, setTotal] = useState(1);
   const [assetId, setAssetId] = useState<number | undefined>();
@@ -18,18 +18,18 @@ const ListPurchaseHistory: React.FC = () => {
 
   const fetchAssets = useCallback(async () => {
     try {
-      const response = await assetApi.getAssets({ page: 0, limit: 1000 });
+      const response = await assetApi.getAssets({ page: page-1, limit: 1000 });
       setAssets(response.data.data.map(asset => ({ id: asset.id, name: asset.name })));
     } catch (err: any) {
       setError(err.message || 'Failed to fetch assets');
     }
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async () => { 
     setLoading(true);
     setError(null);
     try {
-      const response = await purchaseHistoryApi.getPurchaseHistories({ page, limit, assetId, status });
+      const response = await purchaseHistoryApi.getPurchaseHistories({ page:page-1, limit, assetId});
       setPurchaseHistories(response.content);
       setTotal(response.size);
       console.log(response);
@@ -38,7 +38,7 @@ const ListPurchaseHistory: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, assetId, status]);
+  }, [page, limit, assetId]);
 
   useEffect(() => {
     fetchAssets();
@@ -48,19 +48,19 @@ const ListPurchaseHistory: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleStatusToggle = async (id: number, currentStatus: string) => {
-    const isInactive = currentStatus === 'INACTIVE';
-    const verb = isInactive ? 'activate' : 'inactivate';
+  // const handleStatusToggle = async (id: number, currentStatus: string) => {
+  //   const isInactive = currentStatus === 'INACTIVE';
+  //   const verb = isInactive ? 'activate' : 'inactivate';
 
-    if (window.confirm(`Are you sure you want to ${verb} this purchase history?`)) {
-      try {
-        await purchaseHistoryApi.updatePurchaseHistory(id, { status: isInactive ? 'ACTIVE' : 'INACTIVE' });
-        fetchData();
-      } catch (err) {
-        console.error(`Failed to ${verb} purchase history:`, err);
-      }
-    }
-  };
+  //   if (window.confirm(`Are you sure you want to ${verb} this purchase history?`)) {
+  //     try {
+  //       await purchaseHistoryApi.updatePurchaseHistory(id, { status: isInactive ? 'ACTIVE' : 'INACTIVE' });
+  //       fetchData();
+  //     } catch (err) {
+  //       console.error(`Failed to ${verb} purchase history:`, err);
+  //     }
+  //   }
+  // };
 
   if (loading && purchaseHistories.length === 0) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -99,16 +99,6 @@ const ListPurchaseHistory: React.FC = () => {
             ))}
           </select>
 
-          <select
-            value={status || ''}
-            onChange={(e) => setStatus(e.target.value || undefined)}
-            className="border rounded px-3 py-2"
-          >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-          </select>
-
           <button onClick={() => fetchData()} className="bg-blue-500 text-white px-4 py-2 rounded">
             Apply Filters
           </button>
@@ -133,9 +123,6 @@ const ListPurchaseHistory: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Invoice
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -148,16 +135,9 @@ const ListPurchaseHistory: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {new Date(history.purchaseDate).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">${history.amount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">₹{history.amount}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{history.vendor}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{history.invoiceNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      history.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {history.status}
-                    </span>
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{history.invoiceNumber}</td>  
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => navigate(`/purchase-history/edit/${history.id}`)}
@@ -165,14 +145,7 @@ const ListPurchaseHistory: React.FC = () => {
                     >
                       Edit
                     </button>
-                    <button
-                      onClick={() => handleStatusToggle(history.id, history.status)}
-                      className={`${
-                        history.status === 'ACTIVE' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'
-                      }`}
-                    >
-                      {history.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                    </button>
+                    
                   </td>
                 </tr>
               ))}

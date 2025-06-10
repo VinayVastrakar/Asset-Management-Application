@@ -26,6 +26,7 @@ public class Asset {
     private String imagePublicId;
     private Integer warrantyPeriod; // in months
     private String status; // e.g., "   AVAILABLE", "ASSIGNED", "INACTIVE"
+    private String notify;
 
     @ManyToOne
     private Users assignedToUser;

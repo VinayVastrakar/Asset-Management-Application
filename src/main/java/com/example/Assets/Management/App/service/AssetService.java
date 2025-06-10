@@ -7,8 +7,10 @@ import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetAssignmentHistoryRepository;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.CategoryRepository;
+import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +34,9 @@ public class AssetService {
     private AssetRepository assetRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PurchaseHistoryRepository purchaseHistoryRepository;    
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -71,6 +76,35 @@ public class AssetService {
                 .map(assetMapper::toResponseDTO)
                 .toList();
 
+        return new PaginatedResponse<>(
+            assetResponseDTOList,
+            assets.getTotalElements(),
+            assets.getNumber(),
+            assets.getSize()
+        );
+    }
+
+    public PaginatedResponse<AssetResponseDTO> getAssetsNotInPurchaseHistory(int page, int size) {
+        // Validate pagination parameters
+        if (page < 0) {
+            throw new IllegalArgumentException("Page index must not be less than zero");
+        }
+        if (size < 1) {
+            throw new IllegalArgumentException("Page size must not be less than one");
+        }
+    
+        // Create pageable request
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+        
+        // Get paginated results
+        Page<Asset> assets = assetRepository.findAssetsNotInPurchaseHistory(pageable);
+        
+        // Convert to DTOs
+        List<AssetResponseDTO> assetResponseDTOList = assets.stream()
+                .map(assetMapper::toResponseDTO)
+                .toList();
+    
+        // Return paginated response
         return new PaginatedResponse<>(
             assetResponseDTOList,
             assets.getTotalElements(),

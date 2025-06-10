@@ -1,5 +1,7 @@
 import api from './config';
 import { Asset } from '../redux/slices/assetSlice';
+import { parsePath } from 'react-router-dom';
+import { ApiProvider } from '@reduxjs/toolkit/query/react';
 
 export interface AssetQueryParams {
   page?: number;
@@ -25,6 +27,11 @@ export interface ApiResponse<T> {
 export const assetApi = {
   getAssets: async (params: AssetQueryParams) => {
     const response = await api.get<ApiResponse<PaginatedResponse<Asset>>>('/api/asset', { params });
+    return response.data;
+  },
+
+  getUnpurchasedAsset : async (params : AssetQueryParams)=>{
+    const response = await api.get<ApiResponse<PaginatedResponse<Asset>>>('/api/asset/unpurchase-asset', { params });
     return response.data;
   },
 
