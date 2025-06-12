@@ -34,6 +34,15 @@ const AddAsset: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear related errors when fields change
+    if (formErrors[name]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +65,17 @@ const AddAsset: React.FC = () => {
     if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
     if (!formData.expiryDate) errors.expiryDate = 'Expiry date is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
+    
+    // Validate expiry date is after purchase date
+    if (formData.purchaseDate && formData.expiryDate) {
+      const purchaseDate = new Date(formData.purchaseDate);
+      const expiryDate = new Date(formData.expiryDate);
+      
+      if (expiryDate <= purchaseDate) {
+        errors.expiryDate = 'Expiry date must be after purchase date';
+      }
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -65,8 +85,8 @@ const AddAsset: React.FC = () => {
     if (!validateForm()) return;
 
     const formPayload = new FormData();
-    formPayload.append('asset', JSON.stringify(formData)); // Send asset as JSON string
-    if (image) formPayload.append('file', image); // file key must match @RequestPart("file")
+    formPayload.append('asset', JSON.stringify(formData));
+    if (image) formPayload.append('file', image);
 
     try {
       const response = await dispatch(addAsset(formPayload)).unwrap();
@@ -93,7 +113,7 @@ const AddAsset: React.FC = () => {
             { label: 'Name', name: 'name', type: 'text', placeholder: 'Office Laptop' },
             { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description of the asset' },
             { label: 'Purchase Date', name: 'purchaseDate', type: 'date' },
-            { label: 'Expiry Date', name: 'expiryDate', type: 'date' },
+            { label: 'Expiry Date', name: 'expiryDate', type: 'date', min: formData.purchaseDate },
             { label: 'Warranty Period (in months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
           ].map((field) => (
             <div key={field.name}>
@@ -119,6 +139,7 @@ const AddAsset: React.FC = () => {
                   value={(formData as any)[field.name]}
                   onChange={handleChange}
                   placeholder={field.placeholder}
+                  min={field.min}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
                 />

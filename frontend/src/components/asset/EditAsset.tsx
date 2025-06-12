@@ -62,7 +62,7 @@ const EditAsset: React.FC = () => {
       setFormData({
         name: asset.name,
         description: asset.description,
-        categoryId: asset.categoryId?.toString() ?? '',
+        categoryId: asset.categoryId,
         purchaseDate: asset.purchaseDate,
         expiryDate: asset.expiryDate,
         warrantyPeriod: asset.warrantyPeriod.toString()

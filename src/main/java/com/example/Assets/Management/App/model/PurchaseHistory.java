@@ -26,6 +26,9 @@ public class    PurchaseHistory {
     private Double purchasePrice;
 
     @Column(nullable = false)
+    private LocalDate expiryDate;
+
+    @Column(nullable = false)
     private String vendorName;
 
     @Column(nullable = false, unique = true)
@@ -33,6 +36,9 @@ public class    PurchaseHistory {
 
     @Column(nullable = false)
     private Integer warrantyPeriod;
+
+    @Column(nullable = false)
+    private String notify;
 
     @Column(length = 1000)
     private String description;

@@ -40,12 +40,12 @@ const EditPurchaseHistory: React.FC = () => {
           const history = response;
           console.log("------------------>",history);
           setFormData({
-            assetId: history.assetId,
+            assetId: history.assetId.toString(),
             purchaseDate: new Date(history.purchaseDate).toISOString().split('T')[0],
-            amount: history.amount,
+            amount: history.amount.toString(),
             vendor: history.vendor,
             invoiceNumber: history.invoiceNumber,
-            warrantyPeriod: history.warrantyPeriod,
+            warrantyPeriod: history.warrantyPeriod.toString(),
             description: history.description || ''
           });
         }

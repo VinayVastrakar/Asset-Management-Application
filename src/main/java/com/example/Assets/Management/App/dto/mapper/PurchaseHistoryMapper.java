@@ -19,6 +19,8 @@ public class PurchaseHistoryMapper {
         dto.setAssetName(entity.getAsset().getName());
         dto.setPurchaseDate(entity.getPurchaseDate());
         dto.setPurchasePrice(entity.getPurchasePrice());
+        dto.setExpiryDate(entity.getExpiryDate());
+        dto.setNotify(entity.getNotify());
         dto.setVendorName(entity.getVendorName());
         dto.setInvoiceNumber(entity.getInvoiceNumber());
         dto.setWarrantyPeriod(entity.getWarrantyPeriod());
@@ -35,6 +37,8 @@ public class PurchaseHistoryMapper {
                 .purchaseDate(dto.getPurchaseDate())
                 .purchasePrice(dto.getPurchasePrice())
                 .vendorName(dto.getVendorName())
+                .expiryDate(dto.getExpiryDate())
+                .notify(dto.getNotify())
                 .invoiceNumber(dto.getInvoiceNumber())
                 .warrantyPeriod(dto.getWarrantyPeriod())
                 .description(dto.getDescription())
@@ -51,6 +55,8 @@ public class PurchaseHistoryMapper {
                 .vendorName(requestDto.getVendor())     // Note: mapping 'vendor' to 'vendorName'
                 .invoiceNumber(requestDto.getInvoiceNumber())
                 .warrantyPeriod(requestDto.getWarrantyPeriod())
+                .expiryDate(requestDto.getExpiryDate())
+                .notify(requestDto.getNotify())
                 .description(requestDto.getDescription())
                 .build();
     }

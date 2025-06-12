@@ -15,8 +15,10 @@ public class PurchaseHistoryRequestDTO {
     private Long assetId;
     private LocalDate purchaseDate;
     private Double amount;
+    private LocalDate expiryDate;
     private String vendor;
     private String invoiceNumber;
     private Integer warrantyPeriod;
+    private String notify;
     private String description;
 }

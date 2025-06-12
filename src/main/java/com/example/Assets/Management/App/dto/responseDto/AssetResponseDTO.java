@@ -15,6 +15,7 @@ public class AssetResponseDTO {
     private Long id;
     private String name;
     private String description;
+    private Long categoryId;
     private String categoryName;
     private LocalDate purchaseDate;
     private LocalDate expiryDate;

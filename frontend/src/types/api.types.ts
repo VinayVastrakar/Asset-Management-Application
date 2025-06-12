@@ -1,5 +1,7 @@
 export interface ApiResponse<T> {
     data: T;
+    content:[];
+    size:number;
     message: string;
     status: number;
     error?: string;
