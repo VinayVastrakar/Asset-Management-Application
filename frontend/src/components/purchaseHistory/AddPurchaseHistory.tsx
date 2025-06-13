@@ -21,7 +21,9 @@ const AddPurchaseHistory: React.FC = () => {
     vendor: '',
     invoiceNumber: '',
     warrantyPeriod: '',
-    description: ''
+    description: '',
+    expiryDate: '',
+    notify: 'No'
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -197,6 +199,40 @@ const AddPurchaseHistory: React.FC = () => {
               }`}
             />
             {formErrors.warrantyPeriod && <p className="text-sm text-red-600">{formErrors.warrantyPeriod}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-1">
+              Expiry Date
+            </label>
+            <input
+              type="date"
+              id="expiryDate"
+              name="expiryDate"
+              value={formData.expiryDate}
+              onChange={handleChange}
+              min={formData.purchaseDate}
+              className={`w-full px-3 py-2 border rounded text-sm ${
+                formErrors.expiryDate ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {formErrors.expiryDate && <p className="text-sm text-red-600">{formErrors.expiryDate}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="notify" className="block text-sm font-medium text-gray-700 mb-1">
+              Notify
+            </label>
+            <select
+              id="notify"
+              name="notify"
+              value={formData.notify}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+            >
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
           </div>
 
           <div>

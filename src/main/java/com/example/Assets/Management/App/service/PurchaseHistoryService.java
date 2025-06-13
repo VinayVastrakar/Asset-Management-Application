@@ -89,6 +89,8 @@ public class PurchaseHistoryService {
         existingHistory.setVendorName(requestDto.getVendor());
         existingHistory.setInvoiceNumber(requestDto.getInvoiceNumber());
         existingHistory.setWarrantyPeriod(requestDto.getWarrantyPeriod());
+        existingHistory.setExpiryDate(requestDto.getExpiryDate());
+        existingHistory.setNotify(requestDto.getNotify());
         existingHistory.setDescription(requestDto.getDescription());
         existingHistory.setLastChangeBy(user);
 

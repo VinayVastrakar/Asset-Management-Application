@@ -123,6 +123,12 @@ const ListPurchaseHistory: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Invoice
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Expiry Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Notify
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -137,7 +143,11 @@ const ListPurchaseHistory: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">₹{history.amount}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{history.vendor}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{history.invoiceNumber}</td>  
+                  <td className="px-6 py-4 whitespace-nowrap">{history.invoiceNumber}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {history.expiryDate ? new Date(history.expiryDate).toLocaleDateString() : 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">{history.notify || 'No'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => navigate(`/purchase-history/edit/${history.id}`)}

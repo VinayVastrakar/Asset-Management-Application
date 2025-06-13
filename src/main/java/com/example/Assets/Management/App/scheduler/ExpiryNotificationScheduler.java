@@ -1,8 +1,10 @@
 package com.example.Assets.Management.App.scheduler;
 
 import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.model.PurchaseHistory;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
+import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.EmailService;
 import com.example.Assets.Management.App.service.SmsService;
@@ -14,29 +16,34 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Component
 public class ExpiryNotificationScheduler {
     private final AssetRepository assetRepository;
+    private final PurchaseHistoryRepository purchaseHistoryRepository;
     private final EmailService emailService;
     private final SmsService smsService;
     private final UserRepository userRepository;
 
-    public ExpiryNotificationScheduler(AssetRepository assetRepository, EmailService emailService,SmsService smsService, UserRepository userRepository) {
+    public ExpiryNotificationScheduler(AssetRepository assetRepository, EmailService emailService,SmsService smsService, UserRepository userRepository,PurchaseHistoryRepository purchaseHistoryRepository) {
         this.assetRepository = assetRepository;
         this.emailService = emailService;
         this.smsService = smsService;
         this.userRepository = userRepository;
+        this.purchaseHistoryRepository = purchaseHistoryRepository;
     }
 
     // Runs every day at midnight
-    @Scheduled(cron = "0 18 15 * * ?")
+    @Scheduled(cron = "0 59 12 * * ?")
     public void checkExpiringAssets() {
         LocalDate now = LocalDate.now();
         LocalDate soon = now.plusDays(30);
-        List<Asset> expiringAssets = assetRepository.findByExpiryDateBetween(now, soon);
+        List<Asset> expiringAssets = purchaseHistoryRepository.findByExpiryDateBetween(now, soon)
+            .stream()
+            .filter(history -> "Yes".equalsIgnoreCase(history.getNotify()))
+            .map(PurchaseHistory::getAsset)
+            .collect(Collectors.toList());
         List<String> adminEmails = userRepository.findByRole(Role.ADMIN)
                                     .stream()
                                     .map(Users::getEmail)

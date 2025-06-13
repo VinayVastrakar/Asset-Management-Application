@@ -3,6 +3,7 @@ package com.example.Assets.Management.App.controller;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.model.Users;
+import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.service.AssetService;
 import com.example.Assets.Management.App.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class DashboardController {
     
     @Autowired
     private AssetService assetService;
+
+    @Autowired
+    private PurchaseHistoryRepository purchaseHistoryRepository;
     
     @Autowired
     private UserService userService;
@@ -71,7 +75,7 @@ public class DashboardController {
             long expiredAssetCount = assets.stream()
                 .filter(asset -> {
                     LocalDate expiryDate = asset.getExpiryDate();
-                    return expiryDate !=null && 
+                    return expiryDate !=null &&
                         expiryDate.isBefore(now);
                 })
                 .count();
