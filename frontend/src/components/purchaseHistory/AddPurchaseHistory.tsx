@@ -66,10 +66,16 @@ const AddPurchaseHistory: React.FC = () => {
     setLoading(true);
     try {
       await purchaseHistoryApi.createPurchaseHistory({
-        ...formData,
         assetId: Number(formData.assetId),
+        assetName: assets.find(a => a.id === Number(formData.assetId))?.name || '',
+        purchaseDate: formData.purchaseDate,
         amount: Number(formData.amount),
-        warrantyPeriod: Number(formData.warrantyPeriod)
+        vendor: formData.vendor,
+        invoiceNumber: formData.invoiceNumber,
+        warrantyPeriod: Number(formData.warrantyPeriod),
+        description: formData.description,
+        expiryDate: formData.expiryDate,
+        notify: formData.notify
       });
       navigate('/purchase-history');
     } catch (err: any) {

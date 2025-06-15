@@ -15,8 +15,8 @@ const AddAsset: React.FC = () => {
     name: '',
     description: '',
     categoryId: '',
-    purchaseDate: '',
-    expiryDate: '',
+    // purchaseDate: '',
+    // expiryDate: '',
     warrantyPeriod: '',
     status: 'AVAILABLE',
   });
@@ -62,19 +62,19 @@ const AddAsset: React.FC = () => {
     if (!formData.name.trim()) errors.name = 'Name is required';
     if (!formData.description.trim()) errors.description = 'Description is required';
     if (!formData.categoryId) errors.categoryId = 'Category is required';
-    if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
-    if (!formData.expiryDate) errors.expiryDate = 'Expiry date is required';
+    // if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
+    // if (!formData.expiryDate) errors.expiryDate = 'Expiry date is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
     
     // Validate expiry date is after purchase date
-    if (formData.purchaseDate && formData.expiryDate) {
-      const purchaseDate = new Date(formData.purchaseDate);
-      const expiryDate = new Date(formData.expiryDate);
+    // if (formData.purchaseDate && formData.expiryDate) {
+    //   const purchaseDate = new Date(formData.purchaseDate);
+    //   const expiryDate = new Date(formData.expiryDate);
       
-      if (expiryDate <= purchaseDate) {
-        errors.expiryDate = 'Expiry date must be after purchase date';
-      }
-    }
+    //   if (expiryDate <= purchaseDate) {
+    //     errors.expiryDate = 'Expiry date must be after purchase date';
+    //   }
+    // }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -112,8 +112,8 @@ const AddAsset: React.FC = () => {
           {[
             { label: 'Name', name: 'name', type: 'text', placeholder: 'Office Laptop' },
             { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description of the asset' },
-            { label: 'Purchase Date', name: 'purchaseDate', type: 'date' },
-            { label: 'Expiry Date', name: 'expiryDate', type: 'date', min: formData.purchaseDate },
+            // { label: 'Purchase Date', name: 'purchaseDate', type: 'date' },
+            // { label: 'Expiry Date', name: 'expiryDate', type: 'date', min: formData.purchaseDate },
             { label: 'Warranty Period (in months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
           ].map((field) => (
             <div key={field.name}>

@@ -9,10 +9,11 @@ export interface PurchaseHistory {
   purchaseDate: string;
   amount: number;
   vendor: string;
+  notify: string;
+  expiryDate: string;
   invoiceNumber: string;
   warrantyPeriod: number;
   description?: string;
-  status: string;
 }
 
 export interface PurchaseHistoryResponse{
