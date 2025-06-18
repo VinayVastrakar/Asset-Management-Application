@@ -134,8 +134,6 @@ public class AssetService {
         Asset asset = assetRepository.findById(id).get();
         asset.setCategory(categoryRepository.findById(assetRequestDTO.getCategoryId()).get());
         asset.setDescription(assetRequestDTO.getDescription());
-        asset.setExpiryDate(assetRequestDTO.getExpiryDate());
-        asset.setPurchaseDate(assetRequestDTO.getPurchaseDate());
         asset.setName(assetRequestDTO.getName());
         asset.setWarrantyPeriod(assetRequestDTO.getWarrantyPeriod());
         Asset updatedAsset = assetRepository.save(asset);

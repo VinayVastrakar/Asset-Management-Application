@@ -2,13 +2,11 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { categoryApi, Category } from '../../api/category.api';
 
 export interface CategoryState {
-  categories: Category[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: CategoryState = {
-  categories: [],
   loading: false,
   error: null,
 };
@@ -60,9 +58,8 @@ const categorySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchCategories.fulfilled, (state, action) => {
+      .addCase(fetchCategories.fulfilled, (state) => {
         state.loading = false;
-        state.categories = action.payload;
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
@@ -73,9 +70,8 @@ const categorySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(addCategory.fulfilled, (state, action) => {
+      .addCase(addCategory.fulfilled, (state) => {
         state.loading = false;
-        state.categories.push(action.payload);
       })
       .addCase(addCategory.rejected, (state, action) => {
         state.loading = false;
@@ -86,13 +82,8 @@ const categorySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateCategory.fulfilled, (state, action) => {
+      .addCase(updateCategory.fulfilled, (state) => {
         state.loading = false;
-        console.log("--------->91")
-        const index = state.categories.findIndex(cat => cat.id === action.payload.id);
-        if (index !== -1) {
-          state.categories[index] = action.payload;
-        }
       })
       .addCase(updateCategory.rejected, (state, action) => {
         state.loading = false;
@@ -103,9 +94,8 @@ const categorySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteCategory.fulfilled, (state, action) => {
+      .addCase(deleteCategory.fulfilled, (state) => {
         state.loading = false;
-        state.categories = state.categories.filter(cat => cat.id !== action.payload);
       })
       .addCase(deleteCategory.rejected, (state, action) => {
         state.loading = false;

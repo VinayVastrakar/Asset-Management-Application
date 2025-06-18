@@ -2,6 +2,7 @@ package com.example.Assets.Management.App.controller;
 
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.model.PurchaseHistory;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.service.AssetService;
@@ -59,31 +60,24 @@ public class DashboardController {
                 })
                 .collect(Collectors.toList());
 
-            // Calculate expiring soon (within next 30 days)
+            // Calculate expiring soon (within next 30 days) from PurchaseHistory
             LocalDate now = LocalDate.now();
             LocalDate oneMonthFromNow = now.plusMonths(1);
-            long expiringSoonCount = assets.stream()
-                .filter(asset -> {
-                    LocalDate expiryDate = asset.getExpiryDate();
-                    return expiryDate != null &&
-                        !expiryDate.isBefore(now) &&
-                        !expiryDate.isAfter(oneMonthFromNow);
-                })
+            long expiringSoonCount = purchaseHistoryRepository.findByExpiryDateBetween(now, oneMonthFromNow)
+                .stream()
+                .filter(history -> "Yes".equalsIgnoreCase(history.getNotify()))
                 .count();
 
-            //Calculate expired assets
-            long expiredAssetCount = assets.stream()
-                .filter(asset -> {
-                    LocalDate expiryDate = asset.getExpiryDate();
-                    return expiryDate !=null &&
-                        expiryDate.isBefore(now);
-                })
+            // Calculate expired assets from PurchaseHistory
+            long expiredAssetCount = purchaseHistoryRepository.findByExpiryDateBefore(now)
+                .stream()
+                .filter(history -> "Yes".equalsIgnoreCase(history.getNotify()))
                 .count();
             
             // Assigned / Non-Assigned count
             long assignedAssetCount = assets.stream()
-            .filter(asset -> asset.getAssignedToUserName() != null)
-            .count();
+                .filter(asset -> asset.getAssignedToUserName() != null)
+                .count();
 
             long nonAssignedAssetCount = totalAssets - assignedAssetCount;
 
@@ -94,7 +88,7 @@ public class DashboardController {
                 "totalUsers", totalUsers,
                 "categoryWise", categoryWise,
                 "expiringSoonCount", expiringSoonCount,
-                "expiredAssets",expiredAssetCount,
+                "expiredAssets", expiredAssetCount,
                 "assignedAssets", assignedAssetCount,
                 "nonAssignedAssets", nonAssignedAssetCount
             ));

@@ -10,9 +10,9 @@ import com.example.Assets.Management.App.service.EmailService;
 import com.example.Assets.Management.App.service.SmsService;
 import com.example.Assets.Management.App.Enums.Role;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,35 +20,36 @@ import java.util.stream.Collectors;
 
 @Component
 public class ExpiryNotificationScheduler {
-    private final AssetRepository assetRepository;
-    private final PurchaseHistoryRepository purchaseHistoryRepository;
-    private final EmailService emailService;
-    private final SmsService smsService;
-    private final UserRepository userRepository;
 
-    public ExpiryNotificationScheduler(AssetRepository assetRepository, EmailService emailService,SmsService smsService, UserRepository userRepository,PurchaseHistoryRepository purchaseHistoryRepository) {
-        this.assetRepository = assetRepository;
-        this.emailService = emailService;
-        this.smsService = smsService;
-        this.userRepository = userRepository;
-        this.purchaseHistoryRepository = purchaseHistoryRepository;
-    }
+    @Autowired
+    private AssetRepository assetRepository;
+    @Autowired
+    private PurchaseHistoryRepository purchaseHistoryRepository;
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private SmsService smsService;
+    @Autowired
+    private UserRepository userRepository;
 
     // Runs every day at midnight
     @Scheduled(cron = "0 59 12 * * ?")
     public void checkExpiringAssets() {
         LocalDate now = LocalDate.now();
         LocalDate soon = now.plusDays(30);
-        List<Asset> expiringAssets = purchaseHistoryRepository.findByExpiryDateBetween(now, soon)
+        
+        // Get all purchase histories that are expiring soon and have notifications enabled
+        List<PurchaseHistory> expiringHistories = purchaseHistoryRepository.findByExpiryDateBetween(now, soon)
             .stream()
             .filter(history -> "Yes".equalsIgnoreCase(history.getNotify()))
-            .map(PurchaseHistory::getAsset)
             .collect(Collectors.toList());
+
+        // Get admin emails for CC
         List<String> adminEmails = userRepository.findByRole(Role.ADMIN)
                                     .stream()
                                     .map(Users::getEmail)
                                     .collect(Collectors.toList());
-        for (Asset asset : expiringAssets) {
+        // for (Asset asset : expiringAssets) {
             // Send to assigned user
             // String userEmail = asset.getAssignedToUser().getEmail();
             // String subject = "Asset Expiry Alert: " + asset.getName();
@@ -56,15 +57,23 @@ public class ExpiryNotificationScheduler {
             // String mobileNumber = asset.getAssignedToUser().getMobileNumber();
             // emailService.sendEmailWithCc(userEmail,adminEmails, subject, text);
 
+        for (PurchaseHistory history : expiringHistories) {
+            Asset asset = history.getAsset();
             String subject = "Asset Expiry Alert: " + asset.getName();
-            String baseText = "The asset '" + asset.getName() + "' is expiring on " + asset.getExpiryDate();
+            String baseText = String.format(
+                "The asset '%s' is expiring on %s\nPurchase Date: %s\nWarranty Period: %s months",
+                asset.getName(),
+                history.getExpiryDate(),
+                history.getPurchaseDate(),
+                history.getWarrantyPeriod()
+            );
+
             if (asset.getAssignedToUser() != null) {
                 // Case 1: Asset has assigned user - send to user with admins in CC
                 String userEmail = asset.getAssignedToUser().getEmail();
-                String text = baseText;
-                emailService.sendEmailWithCc(userEmail, adminEmails, subject, text);
-            }
-            else{
+                emailService.sendEmailWithCc(userEmail, adminEmails, subject, baseText);
+            } else {
+                // Case 2: Asset is unassigned - send only to admins
                 String adminText = baseText + "\n\nNote: This asset is currently unassigned.";
                 String adminSubject = "[Unassigned] " + subject;
                 emailService.sendEmailToMultipleRecipients(adminEmails, adminSubject, adminText);

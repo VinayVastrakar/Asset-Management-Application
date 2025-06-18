@@ -57,13 +57,13 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Settings */}
+          {/* Settings
           <div className={navItemClass}>
             <span className="hover:underline">Settings</span>
             <div className={dropdownClass}>
               <Link to="/settings/profile" className={linkClass}>Profile Settings</Link>
             </div>
-          </div>
+          </div> */}
         </>
       )}
     </nav>

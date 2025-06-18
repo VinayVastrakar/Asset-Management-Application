@@ -10,8 +10,6 @@ interface Asset {
   description: string;
   categoryId: number;
   categoryName: string;
-  purchaseDate: string;
-  expiryDate: string;
   warrantyPeriod: number;
   assignedToUserName: string;
   status: string;
@@ -93,7 +91,7 @@ const AssetList: React.FC = () => {
   };
 
   const headers = useMemo(
-    () => ['Image', 'Asset Name', 'Assigned User', 'Status', 'Purchase Date', 'Expiry Date', 'Actions'],
+    () => ['Image', 'Asset Name', 'Category', 'Assigned User', 'Status', 'Actions'],
     []
   );
 
@@ -189,16 +187,11 @@ const AssetList: React.FC = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">{asset.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{asset.categoryName}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {asset.assignedToUserName || <span className="text-gray-500">Unassigned</span>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">{renderStatusBadge(asset.status)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(asset.purchaseDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(asset.expiryDate).toLocaleDateString()}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button
                           onClick={() => navigate(`/assets/${asset.id}`)}

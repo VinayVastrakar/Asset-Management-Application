@@ -20,8 +20,6 @@ public class Asset {
     @ManyToOne
     private Category category;
 
-    private LocalDate purchaseDate;
-    private LocalDate expiryDate;
     private String imageUrl;
     private String imagePublicId;
     private Integer warrantyPeriod; // in months

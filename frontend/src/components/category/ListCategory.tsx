@@ -1,18 +1,31 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RootState, AppDispatch } from '../../redux/store';
-import { fetchCategories, deleteCategory } from '../../redux/slices/categorySlice';
+import { categoryApi, Category } from '../../api/category.api';
 import { ToastContainer, toast } from 'react-toastify';
 
 const ListCategory: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { categories, loading, error } = useSelector((state: RootState) => state.categories);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await categoryApi.getCategories();
+      setCategories(response);
+    } catch (err) {
+      setError('Failed to fetch categories');
+      console.error('Failed to fetch categories:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    fetchCategories();
+  }, []);
 
   const handleEdit = (id: number) => {
     navigate(`/categories/edit/${id}`);
@@ -21,9 +34,16 @@ const ListCategory: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
-        const response = await dispatch(deleteCategory(id)).unwrap();
+        setLoading(true);
+        await categoryApi.deleteCategory(id);
+        setCategories(categories.filter(cat => cat.id !== id));
+        toast.success('Category deleted successfully');
       } catch (err) {
+        setError('Failed to delete category');
         console.error('Failed to delete category:', err);
+        toast.error('Failed to delete category');
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -105,7 +125,8 @@ const ListCategory: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div> 
+      </div>
+      <ToastContainer />
     </div>
   );
 };

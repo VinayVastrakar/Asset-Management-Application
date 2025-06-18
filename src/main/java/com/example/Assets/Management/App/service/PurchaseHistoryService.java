@@ -50,7 +50,7 @@ public class PurchaseHistoryService {
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
         
-        return purchaseHistoryRepository.findByAsset(asset, pageable)
+        return purchaseHistoryRepository.findByAssetId(assetId, pageable)
                 .map(purchaseHistoryMapper::toResponseDTO);
     }
 

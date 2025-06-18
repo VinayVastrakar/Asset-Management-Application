@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -66,7 +67,7 @@ public class PurchaseHistoryController {
     @PostMapping
     @Operation(summary = "Add Purchase History")
     public PurchaseHistoryResponseDTO create(
-        @RequestBody PurchaseHistoryRequestDTO dto, 
+        @Valid @RequestBody PurchaseHistoryRequestDTO dto, 
         Authentication authentication) {
         
         String user = authentication.getName(); 
@@ -81,7 +82,7 @@ public class PurchaseHistoryController {
         @Parameter(description = "ID of the purchase history to update")
         @PathVariable Long id,
         
-        @RequestBody PurchaseHistoryRequestDTO dto,
+        @Valid @RequestBody PurchaseHistoryRequestDTO dto,
         Authentication authentication) {
         
         String user = authentication.getName();

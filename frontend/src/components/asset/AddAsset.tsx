@@ -3,20 +3,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../redux/store';
 import { addAsset } from '../../redux/slices/assetSlice';
-import { fetchCategories } from '../../redux/slices/categorySlice';
+import { categoryApi, Category } from '../../api/category.api';
 
 const AddAsset: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading: assetLoading, error: assetError } = useSelector((state: RootState) => state.assets);
-  const { categories, loading: categoryLoading, error: categoryError } = useSelector((state: RootState) => state.categories);
+  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     categoryId: '',
-    // purchaseDate: '',
-    // expiryDate: '',
     warrantyPeriod: '',
     status: 'AVAILABLE',
   });
@@ -26,10 +27,22 @@ const AddAsset: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if(categories.length === 0){
-      dispatch(fetchCategories());
-    }
-  }, [dispatch]);
+    const fetchCategories = async () => {
+      try {
+        setCategoryLoading(true);
+        setCategoryError(null);
+        const response = await categoryApi.getCategories();
+        setCategories(response);
+      } catch (err) {
+        setCategoryError('Failed to fetch categories');
+        console.error('Failed to fetch categories:', err);
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -62,19 +75,7 @@ const AddAsset: React.FC = () => {
     if (!formData.name.trim()) errors.name = 'Name is required';
     if (!formData.description.trim()) errors.description = 'Description is required';
     if (!formData.categoryId) errors.categoryId = 'Category is required';
-    // if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
-    // if (!formData.expiryDate) errors.expiryDate = 'Expiry date is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
-    
-    // Validate expiry date is after purchase date
-    // if (formData.purchaseDate && formData.expiryDate) {
-    //   const purchaseDate = new Date(formData.purchaseDate);
-    //   const expiryDate = new Date(formData.expiryDate);
-      
-    //   if (expiryDate <= purchaseDate) {
-    //     errors.expiryDate = 'Expiry date must be after purchase date';
-    //   }
-    // }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -112,8 +113,6 @@ const AddAsset: React.FC = () => {
           {[
             { label: 'Name', name: 'name', type: 'text', placeholder: 'Office Laptop' },
             { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description of the asset' },
-            // { label: 'Purchase Date', name: 'purchaseDate', type: 'date' },
-            // { label: 'Expiry Date', name: 'expiryDate', type: 'date', min: formData.purchaseDate },
             { label: 'Warranty Period (in months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
           ].map((field) => (
             <div key={field.name}>
@@ -142,7 +141,7 @@ const AddAsset: React.FC = () => {
                   min={field.min}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-                />
+                />  
               )}
               {formErrors[field.name] && <p className="text-sm text-red-600">{formErrors[field.name]}</p>}
             </div>

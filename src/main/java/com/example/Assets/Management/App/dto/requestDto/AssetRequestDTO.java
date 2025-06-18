@@ -9,8 +9,6 @@ public class AssetRequestDTO {
     private String name;
     private String description;
     private Long categoryId;
-    private LocalDate purchaseDate; // in format yyyy-MM-dd 
-    private LocalDate expiryDate; // in format yyyy-MM-dd
     private Integer warrantyPeriod; // in months
     private String status; // e.g., "active", "assigned", "retired"
 }

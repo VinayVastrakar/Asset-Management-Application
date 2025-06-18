@@ -26,8 +26,6 @@ public class AssetMapper {
         dto.setDescription(asset.getDescription());
         dto.setCategoryId(asset.getCategory().getId());
         dto.setCategoryName(asset.getCategory().getName());
-        dto.setPurchaseDate(asset.getPurchaseDate());
-        dto.setExpiryDate(asset.getExpiryDate());
         dto.setImageUrl(asset.getImageUrl());
         dto.setWarrantyPeriod(asset.getWarrantyPeriod());
         dto.setStatus(asset.getStatus());
@@ -40,8 +38,6 @@ public class AssetMapper {
         asset.setName(dto.getName());
         asset.setDescription(dto.getDescription());
         asset.setCategory(categoryService.getCategoryById(dto.getCategoryId()).orElseThrow(() -> new RuntimeException("Category not found")));
-        asset.setPurchaseDate(dto.getPurchaseDate());
-        asset.setExpiryDate(dto.getExpiryDate());
         asset.setWarrantyPeriod(dto.getWarrantyPeriod());
         asset.setStatus(dto.getStatus());
         return asset;

@@ -114,7 +114,7 @@ const AssetView: React.FC = () => {
 
             {asset.status === 'ASSIGNED' && (
               <button
-                onClick={()=> returnAsset(asset.id)}
+                onClick={() => returnAsset(asset.id)}
                 className="px-4 py-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition"
               >
                 Return Asset
@@ -126,6 +126,13 @@ const AssetView: React.FC = () => {
               className="px-4 py-2 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200 transition"
             >
               Edit Asset
+            </button>
+
+            <button
+              onClick={() => navigate(`/purchase-history/asset/${asset.id}`)}
+              className="px-4 py-2 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 transition"
+            >
+              View Purchase History
             </button>
           </div>
         </div>
@@ -147,12 +154,11 @@ const AssetView: React.FC = () => {
               <p><strong>Description:</strong> {asset.description}</p>
               <p><strong>Status:</strong> {asset.status}</p>
               <p><strong>Category:</strong> {asset.categoryName}</p>
+              <p><strong>Warranty Period:</strong> {asset.warrantyPeriod} months</p>
             </div>
             <div>
-              <h2 className="text-xl font-semibold mb-4">Dates & Warranty</h2>
-              <p><strong>Purchase Date:</strong> {new Date(asset.purchaseDate).toLocaleDateString()}</p>
-              <p><strong>Expiry Date:</strong> {new Date(asset.expiryDate).toLocaleDateString()}</p>
-              <p><strong>Warranty:</strong> {asset.warrantyPeriod} months</p>
+              <h2 className="text-xl font-semibold mb-4">Assignment Details</h2>
+              <p><strong>Assigned To:</strong> {asset.assignedToUserName || 'Not Assigned'}</p>
             </div>
           </div>
         </div>
