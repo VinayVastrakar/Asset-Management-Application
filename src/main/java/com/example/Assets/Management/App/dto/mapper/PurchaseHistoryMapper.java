@@ -74,6 +74,7 @@ public class PurchaseHistoryMapper {
                 .amount(entity.getPurchasePrice()) 
                 .description(entity.getDescription())   // Note: mapping 'purchasePrice' to 'amount'
                 .warrantyPeriod(entity.getWarrantyPeriod())
+                .billUrl(entity.getBillUrl())
                 .expiryDate(entity.getExpiryDate())
                 .notify(entity.getNotify())
                 .vendor(entity.getVendorName())         // Note: mapping 'vendorName' to 'vendor'

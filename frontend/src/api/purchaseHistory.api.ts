@@ -68,5 +68,12 @@ export const purchaseHistoryApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return response.data;
+  },
+
+  updatePurchaseHistoryWithBill: async (id: number, form: FormData) => {
+    const response = await api.put(`/api/purchase-history/${id}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
   }
 }; 

@@ -92,19 +92,23 @@ public class PurchaseHistoryController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Update Purchase History")
     public PurchaseHistoryResponseDTO update(
         @Parameter(description = "ID of the purchase history to update")
         @PathVariable Long id,
-        
-        @Valid @RequestBody PurchaseHistoryRequestDTO dto,
+        @RequestPart("purchaseHistory") String purchaseHistoryJson,
+        @RequestPart(value = "file", required = false) MultipartFile file,
         Authentication authentication) {
-        
         String user = authentication.getName();
         Users u = userRepository.findByEmail(user)
             .orElseThrow(() -> new RuntimeException("User not found"));
-        return service.update(id, dto, u);
+        try {
+            PurchaseHistoryRequestDTO dto = objectMapper.readValue(purchaseHistoryJson, PurchaseHistoryRequestDTO.class);
+            return service.updateWithBill(id, dto, file, u);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse request or update purchase history", e);
+        }
     }
 
     @DeleteMapping("/{id}")

@@ -20,6 +20,7 @@ public class PurchaseHistoryResponseDTO {
     private String invoiceNumber;
     private Integer warrantyPeriod;
     private String description;
+    private String billUrl;
     private String notify;
     private Double amount;
     private String vendor;

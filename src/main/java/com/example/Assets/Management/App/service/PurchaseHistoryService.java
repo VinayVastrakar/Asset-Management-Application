@@ -99,14 +99,34 @@ public class PurchaseHistoryService {
         return purchaseHistoryMapper.toResponseDTO(purchaseHistory);
     }
 
-    public PurchaseHistoryResponseDTO update(Long id, PurchaseHistoryRequestDTO requestDto, Users user) {
+    // public PurchaseHistoryResponseDTO update(Long id, PurchaseHistoryRequestDTO requestDto, Users user) {
+    //     PurchaseHistory existingHistory = purchaseHistoryRepository.findById(id)
+    //             .orElseThrow(() -> new EntityNotFoundException("Purchase History not found with ID: " + id));
+
+    //     Asset asset = assetRepository.findById(requestDto.getAssetId())
+    //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found"));
+
+    //     // Update the existing purchase history with new values
+    //     existingHistory.setAsset(asset);
+    //     existingHistory.setPurchaseDate(requestDto.getPurchaseDate());
+    //     existingHistory.setPurchasePrice(requestDto.getAmount());
+    //     existingHistory.setVendorName(requestDto.getVendor());
+    //     existingHistory.setInvoiceNumber(requestDto.getInvoiceNumber());
+    //     existingHistory.setWarrantyPeriod(requestDto.getWarrantyPeriod());
+    //     existingHistory.setExpiryDate(requestDto.getExpiryDate());
+    //     existingHistory.setNotify(requestDto.getNotify());
+    //     existingHistory.setDescription(requestDto.getDescription());
+    //     existingHistory.setLastChangeBy(user);
+
+    //     PurchaseHistory updated = purchaseHistoryRepository.save(existingHistory);
+    //     return purchaseHistoryMapper.toResponseDTO(updated);
+    // }
+
+    public PurchaseHistoryResponseDTO updateWithBill(Long id, PurchaseHistoryRequestDTO requestDto, MultipartFile file, Users user) {
         PurchaseHistory existingHistory = purchaseHistoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Purchase History not found with ID: " + id));
-
         Asset asset = assetRepository.findById(requestDto.getAssetId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found"));
-
-        // Update the existing purchase history with new values
         existingHistory.setAsset(asset);
         existingHistory.setPurchaseDate(requestDto.getPurchaseDate());
         existingHistory.setPurchasePrice(requestDto.getAmount());
@@ -117,7 +137,33 @@ public class PurchaseHistoryService {
         existingHistory.setNotify(requestDto.getNotify());
         existingHistory.setDescription(requestDto.getDescription());
         existingHistory.setLastChangeBy(user);
-
+        if (file != null && !file.isEmpty()) {
+            // Only accept PDF
+            if (!"application/pdf".equals(file.getContentType())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF files are allowed");
+            }
+            try {
+                // Delete old PDF from Cloudinary if exists
+                if (existingHistory.getBillPublicId() != null) {
+                    cloudinary.uploader().destroy(existingHistory.getBillPublicId(), ObjectUtils.asMap("resource_type", "raw"));
+                }
+                // Upload new PDF
+                Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                        "resource_type", "raw",
+                        "folder", "bills/",
+                        "public_id", "bill_" + id + "_" + System.currentTimeMillis(),
+                        "format", "pdf",                              // optional, enforces .pdf extension
+                        "type", "upload"
+                    )
+                );
+                existingHistory.setBillUrl((String) uploadResult.get("secure_url"));
+                existingHistory.setBillPublicId((String) uploadResult.get("public_id"));
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to upload bill PDF", e);
+            }
+        }
         PurchaseHistory updated = purchaseHistoryRepository.save(existingHistory);
         return purchaseHistoryMapper.toResponseDTO(updated);
     }
