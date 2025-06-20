@@ -61,5 +61,12 @@ export const purchaseHistoryApi = {
   deletePurchaseHistory: async (id: number) => {
     const response = await api.delete<ApiResponse<void>>(`/api/purchase-history/${id}`);
     return response.data;
+  },
+
+  createPurchaseHistoryWithBill: async (form: FormData) => {
+    const response = await api.post('/api/purchase-history', form, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
   }
 }; 

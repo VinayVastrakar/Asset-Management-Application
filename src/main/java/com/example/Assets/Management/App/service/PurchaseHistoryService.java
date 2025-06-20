@@ -17,22 +17,29 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 @Service
 public class PurchaseHistoryService {
     private final PurchaseHistoryRepository purchaseHistoryRepository;
     private final AssetRepository assetRepository;
     private final PurchaseHistoryMapper purchaseHistoryMapper;
+    private final Cloudinary cloudinary;
 
     public PurchaseHistoryService(PurchaseHistoryRepository purchaseHistoryRepository, 
                                 AssetRepository assetRepository,
-                                PurchaseHistoryMapper purchaseHistoryMapper) {
+                                PurchaseHistoryMapper purchaseHistoryMapper,
+                                Cloudinary cloudinary) {
         this.purchaseHistoryRepository = purchaseHistoryRepository;
         this.assetRepository = assetRepository;
         this.purchaseHistoryMapper = purchaseHistoryMapper;
+        this.cloudinary = cloudinary;
     }
 
     public Page<PurchaseHistoryResponseDTO> getAll(int page, int size, String[] sort) {
@@ -54,13 +61,30 @@ public class PurchaseHistoryService {
                 .map(purchaseHistoryMapper::toResponseDTO);
     }
 
-    public PurchaseHistoryResponseDTO create(PurchaseHistoryRequestDTO requestDto, Users u) {
+    public PurchaseHistoryResponseDTO createWithBill(PurchaseHistoryRequestDTO requestDto, MultipartFile file, Users u) {
         Asset asset = assetRepository.findById(requestDto.getAssetId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found"));
-        
         PurchaseHistory ph = purchaseHistoryMapper.fromRequestDTO(requestDto);
         ph.setAsset(asset);
         ph.setLastChangeBy(u);
+        if (file != null && !file.isEmpty()) {
+            try {
+                Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                        "resource_type", "raw",
+                        "folder", "bills/",
+                        "public_id", "bill_" + System.currentTimeMillis(),
+                        "format", "pdf",                              // optional, enforces .pdf extension
+                        "type", "upload"
+                    )
+                );
+                ph.setBillUrl((String) uploadResult.get("secure_url"));
+                ph.setBillPublicId((String) uploadResult.get("public_id"));
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to upload bill PDF", e);
+            }
+        }
         PurchaseHistory saved = purchaseHistoryRepository.save(ph);
         return purchaseHistoryMapper.toResponseDTO(saved);
     }

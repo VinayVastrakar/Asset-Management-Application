@@ -13,6 +13,7 @@ const AddPurchaseHistory: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [billFile, setBillFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     assetId: '',
@@ -65,18 +66,26 @@ const AddPurchaseHistory: React.FC = () => {
 
     setLoading(true);
     try {
-      await purchaseHistoryApi.createPurchaseHistory({
-        assetId: Number(formData.assetId),
-        assetName: assets.find(a => a.id === Number(formData.assetId))?.name || '',
-        purchaseDate: formData.purchaseDate,
-        amount: Number(formData.amount),
-        vendor: formData.vendor,
-        invoiceNumber: formData.invoiceNumber,
-        warrantyPeriod: Number(formData.warrantyPeriod),
-        description: formData.description,
-        expiryDate: formData.expiryDate,
-        notify: formData.notify
-      });
+      const form = new FormData();
+      form.append(
+        'purchaseHistory',
+        JSON.stringify({
+          assetId: Number(formData.assetId),
+          purchaseDate: formData.purchaseDate,
+          amount: Number(formData.amount),
+          vendor: formData.vendor,
+          invoiceNumber: formData.invoiceNumber,
+          warrantyPeriod: Number(formData.warrantyPeriod),
+          description: formData.description,
+          expiryDate: formData.expiryDate,
+          notify: formData.notify
+        })
+      );
+      if (billFile) {
+        form.append('file', billFile);
+      }
+
+      await purchaseHistoryApi.createPurchaseHistoryWithBill(form);
       navigate('/purchase-history');
     } catch (err: any) {
       setError(err.message || 'Failed to create purchase history');
@@ -251,6 +260,20 @@ const AddPurchaseHistory: React.FC = () => {
               value={formData.description}
               onChange={handleChange}
               rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="billFile" className="block text-sm font-medium text-gray-700 mb-1">
+              Bill (PDF)
+            </label>
+            <input
+              type="file"
+              id="billFile"
+              name="billFile"
+              accept="application/pdf"
+              onChange={e => setBillFile(e.target.files?.[0] || null)}
               className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
             />
           </div>

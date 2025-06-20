@@ -2,6 +2,8 @@ package com.example.Assets.Management.App.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDate;
 
 
@@ -10,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class    PurchaseHistory {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,4 +49,6 @@ public class    PurchaseHistory {
     @ManyToOne
     private Users lastChangeBy;
 
+    String billUrl;
+    String billPublicId;
 }

@@ -13,9 +13,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/purchase-history")
@@ -24,10 +28,12 @@ import org.springframework.web.bind.annotation.*;
 public class PurchaseHistoryController {
     private final PurchaseHistoryService service;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
-    public PurchaseHistoryController(PurchaseHistoryService service, UserRepository userRepository) {
+    public PurchaseHistoryController(PurchaseHistoryService service, UserRepository userRepository,ObjectMapper objectMapper) {
         this.service = service;
         this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping
@@ -64,16 +70,26 @@ public class PurchaseHistoryController {
         return service.getById(id);
     }
 
-    @PostMapping
-    @Operation(summary = "Add Purchase History")
-    public PurchaseHistoryResponseDTO create(
-        @Valid @RequestBody PurchaseHistoryRequestDTO dto, 
-        Authentication authentication) {
-        
-        String user = authentication.getName(); 
-        Users u = userRepository.findByEmail(user)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        return service.create(dto, u);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Add Purchase History with optional bill PDF")
+    public ResponseEntity<?> createPurchaseHistoryWithBill(
+            @RequestPart("purchaseHistory") String purchaseHistoryJson,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            Authentication authentication) {
+        try {
+            // Parse JSON to DTO
+            PurchaseHistoryRequestDTO dto = objectMapper.readValue(purchaseHistoryJson, PurchaseHistoryRequestDTO.class);
+            String user = authentication.getName();
+            Users u = userRepository.findByEmail(user)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Call service to handle creation and file upload
+            PurchaseHistoryResponseDTO response = service.createWithBill(dto, file, u);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
