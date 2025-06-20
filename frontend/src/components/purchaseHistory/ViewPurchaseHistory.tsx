@@ -15,6 +15,7 @@ interface PurchaseHistory {
   invoiceNumber: string;
   warrantyPeriod: number;
   description?: string;
+  billUrl?: string;
 }
 
 interface Asset {
@@ -27,36 +28,34 @@ interface Asset {
 }
 
 const ViewPurchaseHistory: React.FC = () => {
-  const { assetId } = useParams<{ assetId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [purchaseHistories, setPurchaseHistories] = useState<PurchaseHistory[]>([]);
+  const [history, setHistory] = useState<PurchaseHistory | null>(null);
   const [asset, setAsset] = useState<Asset | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!assetId) return;
-      
+      if (!id) return;
       setLoading(true);
       setError(null);
       try {
-        // Fetch asset details
-        const assetResponse = await assetApi.getAssetById(parseInt(assetId));
-        setAsset(assetResponse);
+        const response = await purchaseHistoryApi.getPurchaseHistoryById(Number(id));
+        setHistory(response);
 
-        // Fetch purchase histories
-        const historyResponse = await purchaseHistoryApi.getPurchaseHistories({ assetId: parseInt(assetId) });
-        setPurchaseHistories(historyResponse.data);
+        // Fetch asset details
+        const assetResponse = await assetApi.getAssetById(response.assetId);
+        console.log(assetResponse);
+        setAsset(assetResponse);
       } catch (err: any) {
-        setError(err.message || 'Failed to fetch data');
+        setError(err.message || 'Failed to fetch purchase history');
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [assetId]);
+  }, [id]);
 
   const renderStatusBadge = (status: string) => {
     const statusStyles: Record<string, string> = {
@@ -77,138 +76,70 @@ const ViewPurchaseHistory: React.FC = () => {
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading...</div>;
   if (error) return <div className="text-red-600 p-4">Error: {error}</div>;
-  if (!asset) return <div className="text-gray-600 p-4">Asset not found</div>;
+  if (!history) return <div className="text-gray-600 p-4">Purchase history not found</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-semibold text-gray-800">{asset.name}</h1>
-            <p className="text-gray-600 mt-1">Purchase History</p>
-          </div>
+          <h1 className="text-2xl font-semibold text-gray-800">Purchase History Details</h1>
           <div className="space-x-2">
             <button
-              onClick={() => navigate(`/assets/${assetId}`)}
+              onClick={() => navigate(-1)}
               className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition"
             >
-              Back to Asset
+              Back
             </button>
             <button
-              onClick={() => navigate(`/purchase-history/add?assetId=${assetId}`)}
-              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition"
+              onClick={() => navigate(`/purchase-history/edit/${id}`)}
+              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
             >
-              Add Purchase Record
+              Edit
             </button>
           </div>
         </div>
-
-        {/* Asset Summary */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Asset Details</h2>
-              <p><strong>Description:</strong> {asset.description}</p>
-              <p><strong>Category:</strong> {asset.categoryName}</p>
-              <p><strong>Status:</strong> {renderStatusBadge(asset.status)}</p>
-            </div>
-            {asset.imageUrl && (
-              <div className="flex justify-center">
-                <img
-                  src={asset.imageUrl}
-                  alt={asset.name}
-                  className="h-48 object-contain rounded"
-                />
-              </div>
-            )}
+        <div className="space-y-4">
+          <div>
+            <span className="font-medium">Asset:</span> {history.assetName}
           </div>
-        </div>
-
-        {/* Purchase History Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Purchase Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Expiry Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vendor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Invoice Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Warranty Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Notify
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {purchaseHistories.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                    No purchase history found
-                  </td>
-                </tr>
-              ) : (
-                purchaseHistories.map((history) => (
-                  <tr key={history.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(history.purchaseDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(history.expiryDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      ${history.amount.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {history.vendor}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {history.invoiceNumber}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {history.warrantyPeriod} months
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs font-semibold rounded-full ${
-                        history.notify === 'Yes' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {history.notify}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => navigate(`/purchase-history/edit/${history.id}`)}
-                        className="text-yellow-600 hover:text-yellow-900 mr-4"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => navigate(`/purchase-history/${history.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <div>
+            <span className="font-medium">Purchase Date:</span> {new Date(history.purchaseDate).toLocaleDateString()}
+          </div>
+          <div>
+            <span className="font-medium">Expiry Date:</span> {new Date(history.expiryDate).toLocaleDateString()}
+          </div>
+          <div>
+            <span className="font-medium">Amount:</span> ${history.amount.toFixed(2)}
+          </div>
+          <div>
+            <span className="font-medium">Vendor:</span> {history.vendor}
+          </div>
+          <div>
+            <span className="font-medium">Invoice Number:</span> {history.invoiceNumber}
+          </div>
+          <div>
+            <span className="font-medium">Warranty Period:</span> {history.warrantyPeriod} months
+          </div>
+          <div>
+            <span className="font-medium">Notify:</span> {history.notify}
+          </div>
+          <div>
+            <span className="font-medium">Description:</span> {history.description || '-'}
+          </div>
+          {history.billUrl && (
+            <div>
+              <span className="font-medium">Bill PDF:</span>{' '}
+              <a
+                href={history.billUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline ml-2"
+                download
+              >
+                Download PDF
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>

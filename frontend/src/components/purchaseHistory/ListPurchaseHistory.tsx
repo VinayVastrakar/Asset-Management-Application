@@ -150,12 +150,17 @@ const ListPurchaseHistory: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{history.notify || 'No'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
+                      onClick={() => navigate(`/purchase-history/asset/${history.id}`)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      View
+                    </button>
+                    <button
                       onClick={() => navigate(`/purchase-history/edit/${history.id}`)}
-                      className="text-primary hover:text-primary-dark mr-4"
+                      className="text-yellow-600 hover:text-yellow-900 ml-4"
                     >
                       Edit
                     </button>
-                    
                   </td>
                 </tr>
               ))}
