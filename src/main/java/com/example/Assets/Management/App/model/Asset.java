@@ -3,6 +3,8 @@ package com.example.Assets.Management.App.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
+
 import java.time.LocalDate;
 import java.util.*;
 
@@ -10,31 +12,32 @@ import java.util.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Asset {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
-    private String name;
-    private String description;
-
-    @ManyToOne
-    private Category category;
-
-    private String imageUrl;
-    private String imagePublicId;
-    private Integer warrantyPeriod; // in months
-    private String status; // e.g., "   AVAILABLE", "ASSIGNED", "INACTIVE"
+    String name;
+    String description;
 
     @ManyToOne
-    private Users assignedToUser;
+    Category category;
+
+    String imageUrl;
+    String imagePublicId;
+    Integer warrantyPeriod; // in months
+    String status; // e.g., "   AVAILABLE", "ASSIGNED", "INACTIVE"
 
     @ManyToOne
-    private Users lastModifiedBy;
+    Users assignedToUser;
+
+    @ManyToOne
+    Users lastModifiedBy;
 
     @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL)
-    private List<AssetAssignmentHistory> assignmentHistory = new ArrayList<>();
+    List<AssetAssignmentHistory> assignmentHistory = new ArrayList<>();
     
     @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL)
-    private List<PurchaseHistory> purchaseHistories = new ArrayList<>();
+    List<PurchaseHistory> purchaseHistories = new ArrayList<>();
 
 }
