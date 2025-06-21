@@ -109,7 +109,7 @@ const ViewPurchaseHistory: React.FC = () => {
             <span className="font-medium">Expiry Date:</span> {new Date(history.expiryDate).toLocaleDateString()}
           </div>
           <div>
-            <span className="font-medium">Amount:</span> ${history.amount.toFixed(2)}
+            <span className="font-medium">Amount:</span> ₹{history.amount.toFixed(2)}
           </div>
           <div>
             <span className="font-medium">Vendor:</span> {history.vendor}
