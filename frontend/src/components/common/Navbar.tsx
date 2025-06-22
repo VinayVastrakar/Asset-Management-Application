@@ -57,6 +57,15 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
+          {/* Depreciation Rates */}
+          <div className={navItemClass}>
+            <span className="hover:underline">Depreciation Rates</span>
+            <div className={dropdownClass}>
+              <Link to="/depreciation-rates/add" className={linkClass}>Add Rate</Link>
+              <Link to="/depreciation-rates" className={linkClass}>Manage Rates</Link>
+            </div>
+          </div>
+
           {/* Settings
           <div className={navItemClass}>
             <span className="hover:underline">Settings</span>

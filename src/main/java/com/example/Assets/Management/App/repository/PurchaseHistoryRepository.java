@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface PurchaseHistoryRepository extends JpaRepository<PurchaseHistory, Long> {
     Page<PurchaseHistory> findByAssetId(Long assetId, Pageable pageable);
+    List<PurchaseHistory> findByAssetId(Long assetId);
     List<PurchaseHistory> findByExpiryDateBefore(LocalDate date);
     List<PurchaseHistory> findByExpiryDateBetween(LocalDate startDate, LocalDate endDate);
     boolean existsByAssetIdAndInvoiceNumber(Long assetId, String invoiceNumber);

@@ -6,6 +6,7 @@ import AssetRoutes from './AssetRoutes';
 import CategoryRoutes from './CategoryRoutes';
 import PurchaseHistoryRoutes from './PurchaseHistoryRoutes';
 import ProtectedRoute from './ProtectedRoute';
+import DepreciationRateRoutes from './DepreciationRateRoutes';
 
 const AppRoutes = () => {
   return (
@@ -35,6 +36,10 @@ const AppRoutes = () => {
       <Route path="/purchase-history/*" element={
         <ProtectedRoute allowedRoles={['ADMIN']}>
             <PurchaseHistoryRoutes />
+        </ProtectedRoute>} />
+      <Route path="/depreciation-rates/*" element={
+        <ProtectedRoute allowedRoles={['ADMIN']}>
+            <DepreciationRateRoutes />
         </ProtectedRoute>} />
     </Routes>
   );
