@@ -26,7 +26,7 @@ const EditPurchaseHistory: React.FC = () => {
     description: '',
     expiryDate: '',
     notify: 'No'
-    
+
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -192,7 +192,7 @@ const EditPurchaseHistory: React.FC = () => {
             <input
               type="text"
               id="vendorName"
-              name="vendorName"
+              name="vendor"
               value={formData.vendor}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded text-sm ${
