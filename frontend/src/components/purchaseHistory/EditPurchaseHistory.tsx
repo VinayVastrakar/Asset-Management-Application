@@ -229,6 +229,7 @@ const EditPurchaseHistory: React.FC = () => {
               name="warrantyPeriod"
               value={formData.warrantyPeriod}
               onChange={handleChange}
+              min={0}
               className={`w-full px-3 py-2 border rounded text-sm ${
                 formErrors.warrantyPeriod ? 'border-red-500' : 'border-gray-300'
               }`}
