@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { depreciationRateApi, DepreciationRate, DepreciationRateQueryParams, PaginatedResponse } from '../../api/depreciationRate.api';
+import { categoryApi, Category } from '../../api/category.api';
 
 const PAGE_SIZE = 10;
 
@@ -13,6 +14,21 @@ const ListDepreciationRates: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [financialYears, setFinancialYears] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch categories on mount
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getCategories();
+        setCategories(data || []);
+      } catch (err) {
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchRates();
@@ -31,9 +47,13 @@ const ListDepreciationRates: React.FC = () => {
       };
       const response = await depreciationRateApi.getDepreciationRates(params);
       const paginated = response.data; // ApiResponse<PaginatedResponse<DepreciationRate>>
+      console.log(response);
       setRates(paginated.data);
       setTotalPages(Math.ceil(paginated.total / paginated.limit));
       setTotal(paginated.total);
+      // Extract unique financial years from the rates
+      const years = Array.from(new Set(paginated.data.map((r: DepreciationRate) => r.financialYear)));
+      setFinancialYears(years);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch depreciation rates');
     } finally {
@@ -64,20 +84,26 @@ const ListDepreciationRates: React.FC = () => {
           </button>
         </div>
         <div className="flex gap-4 mb-4">
-          <input
-            type="text"
-            placeholder="Filter by Category ID"
+          <select
             value={filter.category}
             onChange={e => setFilter(f => ({ ...f, category: e.target.value }))}
             className="px-3 py-2 border border-gray-300 rounded text-sm"
-          />
-          <input
-            type="text"
-            placeholder="Filter by Financial Year"
+          >
+            <option value="">All Categories</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+          <select
             value={filter.financialYear}
             onChange={e => setFilter(f => ({ ...f, financialYear: e.target.value }))}
             className="px-3 py-2 border border-gray-300 rounded text-sm"
-          />
+          >
+            <option value="">All Financial Years</option>
+            {financialYears.map(fy => (
+              <option key={fy} value={fy}>{fy}</option>
+            ))}
+          </select>
         </div>
         {error && <div className="text-red-600 mb-4">{error}</div>}
         {loading ? (

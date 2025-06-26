@@ -3,6 +3,7 @@ package com.example.Assets.Management.App.service;
 import com.example.Assets.Management.App.dto.requestDto.DepreciationRateRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.DepreciationRateResponseDTO;
 import com.example.Assets.Management.App.model.DepreciationRate;
+import com.example.Assets.Management.App.Enums.DepreciationMethod;
 import com.example.Assets.Management.App.repository.DepreciationRateRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,7 +75,6 @@ public class DepreciationService {
      */
     public double calculateDepreciation(double purchasePrice, LocalDate purchaseDate, 
                                       DepreciationRate rate, String financialYear) {
-        
         String purchaseFY = getFinancialYear(purchaseDate);
         String targetFY = financialYear;
         
@@ -85,34 +85,40 @@ public class DepreciationService {
         
         double currentValue = purchasePrice;
         String currentFY = purchaseFY;
+        boolean isFirstYear = true;
         
         // Calculate depreciation year by year until we reach the target FY
         while (currentFY.compareTo(targetFY) <= 0) {
             double depreciation = 0.0;
-            
-            if ("SLM".equals(rate.getDepreciationMethod())) {
-                // Straight Line Method
+            DepreciationMethod method = rate.getDepreciationMethod();
+            if (DepreciationMethod.SLM.equals(method)) {
                 double annualDepreciation = (purchasePrice * (1 - rate.getResidualValuePercentage() / 100)) 
                                           / rate.getUsefulLifeYears();
                 depreciation = annualDepreciation;
-            } else if ("WDV".equals(rate.getDepreciationMethod())) {
-                // Written Down Value Method
+            } else if (DepreciationMethod.WDV.equals(method)) {
                 depreciation = currentValue * (rate.getDepreciationPercentage() / 100);
+            } else if (DepreciationMethod.PRO_RATA.equals(method)) {
+                LocalDate fyStart = LocalDate.of(Integer.parseInt(currentFY.substring(0, 4)), 4, 1);
+                LocalDate fyEnd = fyStart.plusYears(1).minusDays(1);
+                long daysHeld;
+                if (isFirstYear) {
+                    daysHeld = java.time.temporal.ChronoUnit.DAYS.between(purchaseDate, fyEnd.plusDays(1));
+                } else {
+                    daysHeld = java.time.temporal.ChronoUnit.DAYS.between(fyStart, fyEnd.plusDays(1));
+                }
+                long totalDays = fyStart.isLeapYear() ? 366 : 365;
+                double annualDepreciation = (purchasePrice * (rate.getDepreciationPercentage() / 100));
+                depreciation = annualDepreciation * ((double) daysHeld / totalDays);
+                isFirstYear = false;
             }
-            
             currentValue -= depreciation;
-            
-            // Move to next financial year
             if (currentFY.equals(targetFY)) {
                 break;
             }
-            
-            // Calculate next FY
             String[] parts = currentFY.split("-");
             int startYear = Integer.parseInt(parts[0]);
             currentFY = (startYear + 1) + "-" + String.format("%02d", (startYear + 2) % 100);
         }
-        
         return purchasePrice - currentValue;
     }
     

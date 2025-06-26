@@ -23,11 +23,11 @@ public class DepreciationRateRequestDTO {
     private Double depreciationPercentage;
     
     @NotBlank(message = "Depreciation method is required")
-    @Pattern(regexp = "SLM|WDV", message = "Depreciation method must be either SLM or WDV")
+    @Pattern(regexp = "PRO_RATA|SLM|WDV", message = "Depreciation method must be either SLM or WDV")
     private DepreciationMethod depreciationMethod;
     
     @Min(value = 1, message = "Useful life must be at least 1 year")
-    private Integer usefulLifeYears;
+    private Integer usefulLifeYears;    
     
     @DecimalMin(value = "0.0", message = "Residual value percentage must be positive")
     @DecimalMax(value = "100.0", message = "Residual value percentage cannot exceed 100%")

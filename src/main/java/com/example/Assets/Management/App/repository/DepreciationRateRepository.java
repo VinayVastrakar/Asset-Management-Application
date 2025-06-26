@@ -1,6 +1,8 @@
 package com.example.Assets.Management.App.repository;
 
 import com.example.Assets.Management.App.model.DepreciationRate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,6 +27,15 @@ public interface DepreciationRateRepository extends JpaRepository<DepreciationRa
     
     // Find all rates for a financial year
     List<DepreciationRate> findByFinancialYear(String financialYear);
+
+    // Paginated: find all by category
+    Page<DepreciationRate> findByCategoryId(Long categoryId, Pageable pageable);
+
+    // Paginated: find all by financial year
+    Page<DepreciationRate> findByFinancialYear(String financialYear, Pageable pageable);
+
+    // Paginated: find all by category and financial year
+    Page<DepreciationRate> findByCategoryIdAndFinancialYear(Long categoryId, String financialYear, Pageable pageable);
     
     // Find applicable rate for a category on a specific date
     @Query("SELECT dr FROM DepreciationRate dr WHERE dr.category.id = :categoryId " +

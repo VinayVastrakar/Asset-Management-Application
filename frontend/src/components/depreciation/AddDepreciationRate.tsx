@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { depreciationRateApi, DepreciationRateRequest } from '../../api/depreciationRate.api';
+import { categoryApi, Category } from '../../api/category.api';
 
 const initialForm: DepreciationRateRequest = {
   categoryId: 0,
@@ -14,12 +15,42 @@ const initialForm: DepreciationRateRequest = {
   effectiveToDate: '',
 };
 
+// Helper to get past and current financial years
+const getPastAndCurrentFinancialYears = (startYear: number) => {
+  const years: string[] = [];
+  const today = new Date();
+  let currentFYStart = today.getFullYear();
+  // If before April, current FY is previous year
+  if (today.getMonth() < 3) {
+    currentFYStart = currentFYStart - 1;
+  }
+  for (let fy = startYear; fy <= currentFYStart; fy++) {
+    const fyEnd = (fy + 1).toString().slice(-2);
+    years.push(`${fy}-${fyEnd}`);
+  }
+  return years;
+};
+const financialYears = getPastAndCurrentFinancialYears(2020);
+
 const AddDepreciationRate: React.FC = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState<DepreciationRateRequest>(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoryApi.getCategories();
+        setCategories(data || []);
+      } catch {
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -33,7 +64,15 @@ const AddDepreciationRate: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: name === 'categoryId' || name === 'depreciationPercentage' || name === 'usefulLifeYears' || name === 'residualValuePercentage' ? Number(value) : value }));
+    if (name === 'depreciationPercentage') {
+      // Remove leading zeros and store as number
+      const sanitized = value.replace(/^0+(?=\d)/, '');
+      setForm(f => ({ ...f, [name]: Number(sanitized) }));
+    } else if (name === 'categoryId' || name === 'usefulLifeYears' || name === 'residualValuePercentage') {
+      setForm(f => ({ ...f, [name]: Number(value) }));
+    } else {
+      setForm(f => ({ ...f, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,14 +99,18 @@ const AddDepreciationRate: React.FC = () => {
         {error && <div className="text-red-600 mb-4">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Category ID</label>
-            <input
-              type="number"
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select
               name="categoryId"
-              value={form.categoryId || ''}
+              value={form.categoryId}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded text-sm ${errors.categoryId ? 'border-red-500' : 'border-gray-300'}`}
-            />
+            >
+              <option value="">Select category</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
             {errors.categoryId && <p className="text-sm text-red-600">{errors.categoryId}</p>}
           </div>
           <div>
@@ -81,14 +124,18 @@ const AddDepreciationRate: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Financial Year (e.g. 2023-24)</label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium mb-1">Financial Year</label>
+            <select
               name="financialYear"
               value={form.financialYear}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded text-sm ${errors.financialYear ? 'border-red-500' : 'border-gray-300'}`}
-            />
+            >
+              <option value="">Select financial year</option>
+              {financialYears.map(fy => (
+                <option key={fy} value={fy}>{fy}</option>
+              ))}
+            </select>
             {errors.financialYear && <p className="text-sm text-red-600">{errors.financialYear}</p>}
           </div>
           <div>
@@ -114,8 +161,10 @@ const AddDepreciationRate: React.FC = () => {
               className={`w-full px-3 py-2 border rounded text-sm ${errors.depreciationMethod ? 'border-red-500' : 'border-gray-300'}`}
             >
               <option value="">Select method</option>
-              <option value="SLM">SLM (Straight Line)</option>
-              <option value="WDV">WDV (Written Down Value)</option>
+              <option value="PRO_RATA">PRO_RATA (Pro-rata/Time Apportioned)</option>
+              {/* <option value="SLM">SLM (Straight Line)</option>
+              <option value="WDV">WDV (Written Down Value)</option> */}
+              
             </select>
             {errors.depreciationMethod && <p className="text-sm text-red-600">{errors.depreciationMethod}</p>}
           </div>
