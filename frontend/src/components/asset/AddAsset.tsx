@@ -113,7 +113,7 @@ const AddAsset: React.FC = () => {
           {[
             { label: 'Name', name: 'name', type: 'text', placeholder: 'Office Laptop' },
             { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description of the asset' },
-            { label: 'Warranty Period (in months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
+            { label: 'Warranty Period (in months)', name: 'warrantyPeriod', type: 'number', placeholder: '12', min: 1 }
           ].map((field) => (
             <div key={field.name}>
               <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">

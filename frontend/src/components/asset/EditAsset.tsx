@@ -20,8 +20,6 @@ const EditAsset: React.FC = () => {
     name: '',
     description: '',
     categoryId: '',
-    purchaseDate: '',
-    expiryDate: '',
     warrantyPeriod: ''
   });
 
@@ -63,8 +61,6 @@ const EditAsset: React.FC = () => {
         name: asset.name,
         description: asset.description,
         categoryId: asset.categoryId,
-        purchaseDate: asset.purchaseDate,
-        expiryDate: asset.expiryDate,
         warrantyPeriod: asset.warrantyPeriod.toString()
       });
       if (asset.imageUrl) {
@@ -93,8 +89,6 @@ const EditAsset: React.FC = () => {
     if (!formData.name.trim()) errors.name = 'Name is required';
     if (!formData.description.trim()) errors.description = 'Description is required';
     if (!formData.categoryId) errors.categoryId = 'Category is required';
-    if (!formData.purchaseDate) errors.purchaseDate = 'Purchase date is required';
-    if (!formData.expiryDate) errors.expiryDate = 'Expiry date is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
 
     setFormErrors(errors);
@@ -139,8 +133,6 @@ const EditAsset: React.FC = () => {
           {[
             { label: 'Name', name: 'name', type: 'text', placeholder: 'Office Laptop' },
             { label: 'Description', name: 'description', type: 'textarea', placeholder: 'Brief description' },
-            { label: 'Purchase Date', name: 'purchaseDate', type: 'date' },
-            { label: 'Expiry Date', name: 'expiryDate', type: 'date' },
             { label: 'Warranty Period (months)', name: 'warrantyPeriod', type: 'number', placeholder: '12' }
           ].map((field) => (
             <div key={field.name}>

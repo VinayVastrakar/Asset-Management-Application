@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
           <div className={navItemClass}>
             <span className="hover:underline">User</span>
             <div className={dropdownClass}>
-              <Link to="/users/add" className={linkClass}>Add New User</Link>
+              {/* <Link to="/users/add" className={linkClass}>Add New User</Link> */}
               <Link to="/users" className={linkClass}>Manage Users</Link>
             </div>
           </div>
@@ -32,8 +32,8 @@ const Navbar: React.FC = () => {
           <div className={navItemClass}>
             <span className="hover:underline">Assets</span>
             <div className={dropdownClass}>
-              <Link to="/assets/add" className={linkClass}>Add New Asset</Link>
-              <Link to="/assets" className={linkClass}>View/Edit Asset</Link>
+              {/* <Link to="/assets/add" className={linkClass}>Add New Asset</Link> */}
+              <Link to="/assets" className={linkClass}>Manage Asset</Link>
               
             </div>
           </div>
@@ -42,37 +42,20 @@ const Navbar: React.FC = () => {
           <div className={navItemClass}>
             <span className="hover:underline">Purchase History</span>
             <div className={dropdownClass}>
-              <Link to="/purchase-history/add" className={linkClass}>New Purchase</Link>
-              <Link to="/purchase-history" className={linkClass}>View Purchases</Link>
-              <Link to="/purchase-history/reports" className={linkClass}>Purchase Reports</Link>
+              {/* <Link to="/purchase-history/add" className={linkClass}>New Purchase</Link> */}
+              <Link to="/purchase-history" className={linkClass}>Manage Purchases</Link>
             </div>
           </div>
 
           {/* Categories */}
           <div className={navItemClass}>
-            <span className="hover:underline">Categories</span>
+            <span className="hover:underline">Setting</span>
             <div className={dropdownClass}>
-              <Link to="/categories/add" className={linkClass}>Add Category</Link>
+              {/* <Link to="/categories/add" className={linkClass}>Add Category</Link> */}
               <Link to="/categories/manage" className={linkClass}>Manage Categories</Link>
+              <Link to="/depreciation-rates" className={linkClass}>Manage Depreciation Rates</Link>
             </div>
           </div>
-
-          {/* Depreciation Rates */}
-          <div className={navItemClass}>
-            <span className="hover:underline">Depreciation Rates</span>
-            <div className={dropdownClass}>
-              <Link to="/depreciation-rates/add" className={linkClass}>Add Rate</Link>
-              <Link to="/depreciation-rates" className={linkClass}>Manage Rates</Link>
-            </div>
-          </div>
-
-          {/* Settings
-          <div className={navItemClass}>
-            <span className="hover:underline">Settings</span>
-            <div className={dropdownClass}>
-              <Link to="/settings/profile" className={linkClass}>Profile Settings</Link>
-            </div>
-          </div> */}
         </>
       )}
     </nav>
