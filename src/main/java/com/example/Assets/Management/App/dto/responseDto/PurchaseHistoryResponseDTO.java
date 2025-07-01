@@ -19,6 +19,7 @@ public class PurchaseHistoryResponseDTO {
     private LocalDate expiryDate;
     private String invoiceNumber;
     private Integer warrantyPeriod;
+    private Integer qty;
     private String description;
     private String billUrl;
     private String notify;

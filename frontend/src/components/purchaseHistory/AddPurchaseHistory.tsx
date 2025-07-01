@@ -8,43 +8,45 @@ interface Asset {
   name: string;
 }
 
+const defaultFormData = {
+  assetId: '',
+  purchaseDate: '',
+  amount: '',
+  vendor: '',
+  invoiceNumber: '',
+  warrantyPeriod: '',
+  qty: 1,
+  description: '',
+  expiryDate: '',
+  notify: 'No',
+};
+
 const AddPurchaseHistory: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [billFile, setBillFile] = useState<File | null>(null);
-
-  const [formData, setFormData] = useState({
-    assetId: '',
-    purchaseDate: '',
-    amount: '',
-    vendor: '',
-    invoiceNumber: '',
-    warrantyPeriod: '',
-    description: '',
-    expiryDate: '',
-    notify: 'No'
-  });
-
+  const [formData, setFormData] = useState(defaultFormData);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const fetchAssets = async () => {
+    (async () => {
       try {
         const response = await assetApi.getAssets({ page: 0, limit: 1000 });
         setAssets(response.data.data);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch assets');
       }
-    };
-
-    fetchAssets();
+    })();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? Number(value) : value,
+    }));
   };
 
   const validateForm = () => {
@@ -55,6 +57,7 @@ const AddPurchaseHistory: React.FC = () => {
     if (!formData.vendor) errors.vendor = 'Vendor name is required';
     if (!formData.invoiceNumber) errors.invoiceNumber = 'Invoice number is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
+    if (formData.qty < 1) errors.qty = 'Quantity must be at least 1';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -66,26 +69,16 @@ const AddPurchaseHistory: React.FC = () => {
 
     setLoading(true);
     try {
-      const form = new FormData();
-      form.append(
-        'purchaseHistory',
-        JSON.stringify({
-          assetId: Number(formData.assetId),
-          purchaseDate: formData.purchaseDate,
-          amount: Number(formData.amount),
-          vendor: formData.vendor,
-          invoiceNumber: formData.invoiceNumber,
-          warrantyPeriod: Number(formData.warrantyPeriod),
-          description: formData.description,
-          expiryDate: formData.expiryDate,
-          notify: formData.notify
-        })
-      );
-      if (billFile) {
-        form.append('file', billFile);
-      }
+      const payload = new FormData();
+      payload.append('purchaseHistory', JSON.stringify({
+        ...formData,
+        assetId: Number(formData.assetId),
+        amount: Number(formData.amount),
+        warrantyPeriod: Number(formData.warrantyPeriod),
+      }));
+      if (billFile) payload.append('file', billFile);
 
-      await purchaseHistoryApi.createPurchaseHistoryWithBill(form);
+      await purchaseHistoryApi.createPurchaseHistoryWithBill(payload);
       navigate('/purchase-history');
     } catch (err: any) {
       setError(err.message || 'Failed to create purchase history');
@@ -93,6 +86,31 @@ const AddPurchaseHistory: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const renderInput = (
+    name: string,
+    label: string,
+    type: 'text' | 'number' | 'date' = 'text',
+    extraProps: Record<string, any> = {}
+  ) => (
+    <div>
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={formData[name as keyof typeof formData] as any}
+        onChange={handleChange}
+        {...extraProps}
+        className={`w-full px-3 py-2 border rounded text-sm ${
+          formErrors[name] ? 'border-red-500' : 'border-gray-300'
+        }`}
+      />
+      {formErrors[name] && <p className="text-sm text-red-600">{formErrors[name]}</p>}
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -106,6 +124,7 @@ const AddPurchaseHistory: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
+          {/* Asset dropdown */}
           <div>
             <label htmlFor="assetId" className="block text-sm font-medium text-gray-700 mb-1">
               Asset
@@ -120,7 +139,7 @@ const AddPurchaseHistory: React.FC = () => {
               }`}
             >
               <option value="">Select an asset</option>
-              {assets.map((asset) => (
+              {assets.map(asset => (
                 <option key={asset.id} value={asset.id}>
                   {asset.name}
                 </option>
@@ -129,111 +148,15 @@ const AddPurchaseHistory: React.FC = () => {
             {formErrors.assetId && <p className="text-sm text-red-600">{formErrors.assetId}</p>}
           </div>
 
-          <div>
-            <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Purchase Date
-            </label>
-            <input
-              type="date"
-              id="purchaseDate"
-              name="purchaseDate"
-              value={formData.purchaseDate}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.purchaseDate ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {formErrors.purchaseDate && <p className="text-sm text-red-600">{formErrors.purchaseDate}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-              Purchase Price
-            </label>
-            <input
-              type="number"
-              id="amount"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              placeholder="0.00"
-              step="0.01"
-              className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.amount ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {formErrors.amount && <p className="text-sm text-red-600">{formErrors.amount}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 mb-1">
-              Vendor Name
-            </label>
-            <input
-              type="text"
-              id="vendor"
-              name="vendor"
-              value={formData.vendor}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.vendor ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {formErrors.vendor && <p className="text-sm text-red-600">{formErrors.vendor}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-1">
-              Invoice Number
-            </label>
-            <input
-              type="text"
-              id="invoiceNumber"
-              name="invoiceNumber"
-              value={formData.invoiceNumber}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.invoiceNumber ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {formErrors.invoiceNumber && <p className="text-sm text-red-600">{formErrors.invoiceNumber}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="warrantyPeriod" className="block text-sm font-medium text-gray-700 mb-1">
-              Warranty Period (months)
-            </label>
-            <input
-              type="number"
-              id="warrantyPeriod"
-              name="warrantyPeriod"
-              value={formData.warrantyPeriod}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.warrantyPeriod ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {formErrors.warrantyPeriod && <p className="text-sm text-red-600">{formErrors.warrantyPeriod}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-1">
-              Expiry Date
-            </label>
-            <input
-              type="date"
-              id="expiryDate"
-              name="expiryDate"
-              value={formData.expiryDate}
-              onChange={handleChange}
-              min={formData.purchaseDate}
-              className={`w-full px-3 py-2 border rounded text-sm ${
-                formErrors.expiryDate ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {formErrors.expiryDate && <p className="text-sm text-red-600">{formErrors.expiryDate}</p>}
-          </div>
-
+          {renderInput('purchaseDate', 'Purchase Date', 'date')}
+          {renderInput('amount', 'Purchase Price', 'number', { step: '0.01', placeholder: '0.00' })}
+          {renderInput('vendor', 'Vendor Name')}
+          {renderInput('qty', 'Quantity', 'number', { min: 1 })}
+          {renderInput('invoiceNumber', 'Invoice Number')}
+          {renderInput('warrantyPeriod', 'Warranty Period (months)', 'number')}
+          {renderInput('expiryDate', 'Expiry Date', 'date', { min: formData.purchaseDate })}
+          
+          {/* Notify dropdown */}
           <div>
             <label htmlFor="notify" className="block text-sm font-medium text-gray-700 mb-1">
               Notify
@@ -250,6 +173,7 @@ const AddPurchaseHistory: React.FC = () => {
             </select>
           </div>
 
+          {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               Description
@@ -264,6 +188,7 @@ const AddPurchaseHistory: React.FC = () => {
             />
           </div>
 
+          {/* Bill Upload */}
           <div>
             <label htmlFor="billFile" className="block text-sm font-medium text-gray-700 mb-1">
               Bill (PDF)
@@ -278,6 +203,7 @@ const AddPurchaseHistory: React.FC = () => {
             />
           </div>
 
+          {/* Actions */}
           <div className="flex justify-between pt-4">
             <button
               type="button"
@@ -300,4 +226,4 @@ const AddPurchaseHistory: React.FC = () => {
   );
 };
 
-export default AddPurchaseHistory; 
+export default AddPurchaseHistory;

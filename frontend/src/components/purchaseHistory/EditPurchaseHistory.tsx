@@ -25,8 +25,8 @@ const EditPurchaseHistory: React.FC = () => {
     warrantyPeriod: '',
     description: '',
     expiryDate: '',
-    notify: 'No'
-
+    notify: 'No',
+    qty: '1'
   });
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -52,7 +52,8 @@ const EditPurchaseHistory: React.FC = () => {
             warrantyPeriod: history.warrantyPeriod.toString(),
             description: history.description || '',
             expiryDate: history.expiryDate ? new Date(history.expiryDate).toISOString().split('T')[0] : '',
-            notify: history.notify || 'No'
+            notify: history.notify || 'No',
+            qty: history.qty ? history.qty.toString() : '1'
           });
         }
       } catch (err: any) {
@@ -76,6 +77,7 @@ const EditPurchaseHistory: React.FC = () => {
     if (!formData.vendor) errors.vendorName = 'Vendor name is required';
     if (!formData.invoiceNumber) errors.invoiceNumber = 'Invoice number is required';
     if (!formData.warrantyPeriod) errors.warrantyPeriod = 'Warranty period is required';
+    if (!formData.qty || isNaN(Number(formData.qty)) || Number(formData.qty) < 1) errors.qty = 'Quantity must be at least 1';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -99,7 +101,8 @@ const EditPurchaseHistory: React.FC = () => {
           warrantyPeriod: Number(formData.warrantyPeriod),
           description: formData.description,
           expiryDate: formData.expiryDate,
-          notify: formData.notify
+          notify: formData.notify,
+          qty: Number(formData.qty)
         })
       );
       if (billFile) {
@@ -269,6 +272,23 @@ const EditPurchaseHistory: React.FC = () => {
               <option value="Yes">Yes</option>
               <option value="No">No</option>
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="qty" className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity
+            </label>
+            <input
+              type="number"
+              id="qty"
+              name="qty"
+              value={formData.qty}
+              onChange={handleChange}
+              min={1}
+              required
+              className={`w-full px-3 py-2 border rounded text-sm ${formErrors.qty ? 'border-red-500' : 'border-gray-300'}`}
+            />
+            {formErrors.qty && <p className="text-sm text-red-600">{formErrors.qty}</p>}
           </div>
 
           <div>

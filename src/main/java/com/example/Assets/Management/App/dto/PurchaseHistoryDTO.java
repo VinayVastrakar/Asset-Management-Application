@@ -1,4 +1,4 @@
- package com.example.Assets.Management.App.dto;
+package com.example.Assets.Management.App.dto;
 
 import com.example.Assets.Management.App.model.PurchaseHistory;
 
@@ -17,6 +17,7 @@ public class PurchaseHistoryDTO {
     private String vendorName;
     private String invoiceNumber;
     private Integer warrantyPeriod;
+    private Integer qty;
     private String notify;
     private String description;
 } 

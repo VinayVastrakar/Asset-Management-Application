@@ -41,6 +41,9 @@ public class    PurchaseHistory {
     private Integer warrantyPeriod;
 
     @Column(nullable = false)
+    private Integer qty;
+
+    @Column(nullable = false)
     private String notify;
 
     @Column(length = 1000)

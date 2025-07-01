@@ -14,6 +14,7 @@ export interface PurchaseHistory {
   invoiceNumber: string;
   warrantyPeriod: number;
   description?: string;
+  qty: number;
 }
 
 export interface PurchaseHistoryResponse{

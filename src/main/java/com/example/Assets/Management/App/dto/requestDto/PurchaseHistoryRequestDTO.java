@@ -44,6 +44,10 @@ public class PurchaseHistoryRequestDTO {
     @Positive(message = "Warranty period must be positive")
     private Integer warrantyPeriod;
 
+    @NotNull(message = "Quantity is required")
+    @Positive(message = "Quantity must be at least 1")
+    private Integer qty;
+
     private String billUrl;
     private String description;
 }

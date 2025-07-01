@@ -16,6 +16,7 @@ interface PurchaseHistory {
   warrantyPeriod: number;
   description?: string;
   billUrl?: string;
+  qty: number;
 }
 
 interface Asset {
@@ -125,6 +126,9 @@ const ViewPurchaseHistory: React.FC = () => {
           </div>
           <div>
             <span className="font-medium">Description:</span> {history.description || '-'}
+          </div>
+          <div>
+            <span className="font-medium">Qty:</span> {history.qty}
           </div>
           {history.billUrl && (
             <div>
