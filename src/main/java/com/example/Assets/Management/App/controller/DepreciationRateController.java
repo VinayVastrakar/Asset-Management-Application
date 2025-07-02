@@ -8,6 +8,7 @@ import com.example.Assets.Management.App.service.DepreciationRateService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class DepreciationRateController {
         this.depreciationRateService = depreciationRateService;
     }
 
+    @Operation(summary = "Create a new depreciation rate")
     @PostMapping
     public ResponseEntity<ApiResponse<DepreciationRateResponseDTO>> create(@Valid @RequestBody DepreciationRateRequestDTO dto) {
         DepreciationRateResponseDTO created = depreciationRateService.create(dto);
@@ -27,6 +29,7 @@ public class DepreciationRateController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get paginated list of depreciation rates, optionally filtered by category and financial year")
     @GetMapping
     public ResponseEntity<ApiResponse<PaginatedResponse<DepreciationRateResponseDTO>>> listAll(
             @RequestParam(defaultValue = "0") int page,
@@ -39,6 +42,7 @@ public class DepreciationRateController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get depreciation rate by ID")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<DepreciationRateResponseDTO>> getById(@PathVariable Long id) {
         DepreciationRateResponseDTO dto = depreciationRateService.getById(id);
@@ -46,6 +50,7 @@ public class DepreciationRateController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Update depreciation rate by ID")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<DepreciationRateResponseDTO>> update(@PathVariable Long id, @Valid @RequestBody DepreciationRateRequestDTO dto) {
         DepreciationRateResponseDTO updated = depreciationRateService.update(id, dto);
@@ -53,6 +58,7 @@ public class DepreciationRateController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Delete depreciation rate by ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         depreciationRateService.delete(id);
