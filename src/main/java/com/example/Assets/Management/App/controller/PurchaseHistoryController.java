@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -94,7 +93,7 @@ public class PurchaseHistoryController {
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Update Purchase History")
-    public PurchaseHistoryResponseDTO update(
+    public ResponseEntity<?> update(
         @Parameter(description = "ID of the purchase history to update")
         @PathVariable Long id,
         @RequestPart("purchaseHistory") String purchaseHistoryJson,
@@ -105,7 +104,7 @@ public class PurchaseHistoryController {
             .orElseThrow(() -> new RuntimeException("User not found"));
         try {
             PurchaseHistoryRequestDTO dto = objectMapper.readValue(purchaseHistoryJson, PurchaseHistoryRequestDTO.class);
-            return service.updateWithBill(id, dto, file, u);
+            return ResponseEntity.ok(service.updateWithBill(id, dto, file, u));
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse request or update purchase history", e);
         }

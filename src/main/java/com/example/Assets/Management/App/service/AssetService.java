@@ -7,7 +7,6 @@ import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetAssignmentHistoryRepository;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.CategoryRepository;
-import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 
 import org.springframework.data.domain.Sort;
@@ -34,9 +33,7 @@ public class AssetService {
     private AssetRepository assetRepository;
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private PurchaseHistoryRepository purchaseHistoryRepository;    
+  
 
     @Autowired
     private CategoryRepository categoryRepository;

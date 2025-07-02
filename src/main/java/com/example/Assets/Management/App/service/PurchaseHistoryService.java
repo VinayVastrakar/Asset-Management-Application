@@ -9,7 +9,6 @@ import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,8 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Map;
 
 @Service
@@ -51,7 +48,7 @@ public class PurchaseHistoryService {
     }
 
     public Page<PurchaseHistoryResponseDTO> getByAssetId(Long assetId, int page, int size, String[] sort) {
-        Asset asset = assetRepository.findById(assetId)
+        assetRepository.findById(assetId)
                 .orElseThrow(() -> new EntityNotFoundException("Asset not found with ID: " + assetId));
 
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -98,29 +95,6 @@ public class PurchaseHistoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Purchase History not found with ID: " + id));
         return purchaseHistoryMapper.toResponseDTO(purchaseHistory);
     }
-
-    // public PurchaseHistoryResponseDTO update(Long id, PurchaseHistoryRequestDTO requestDto, Users user) {
-    //     PurchaseHistory existingHistory = purchaseHistoryRepository.findById(id)
-    //             .orElseThrow(() -> new EntityNotFoundException("Purchase History not found with ID: " + id));
-
-    //     Asset asset = assetRepository.findById(requestDto.getAssetId())
-    //             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Asset not found"));
-
-    //     // Update the existing purchase history with new values
-    //     existingHistory.setAsset(asset);
-    //     existingHistory.setPurchaseDate(requestDto.getPurchaseDate());
-    //     existingHistory.setPurchasePrice(requestDto.getAmount());
-    //     existingHistory.setVendorName(requestDto.getVendor());
-    //     existingHistory.setInvoiceNumber(requestDto.getInvoiceNumber());
-    //     existingHistory.setWarrantyPeriod(requestDto.getWarrantyPeriod());
-    //     existingHistory.setExpiryDate(requestDto.getExpiryDate());
-    //     existingHistory.setNotify(requestDto.getNotify());
-    //     existingHistory.setDescription(requestDto.getDescription());
-    //     existingHistory.setLastChangeBy(user);
-
-    //     PurchaseHistory updated = purchaseHistoryRepository.save(existingHistory);
-    //     return purchaseHistoryMapper.toResponseDTO(updated);
-    // }
 
     public PurchaseHistoryResponseDTO updateWithBill(Long id, PurchaseHistoryRequestDTO requestDto, MultipartFile file, Users user) {
         PurchaseHistory existingHistory = purchaseHistoryRepository.findById(id)
@@ -169,8 +143,4 @@ public class PurchaseHistoryService {
         return purchaseHistoryMapper.toResponseDTO(updated);
     }
 
-    // Optional: Keep this method if you still need it elsewhere
-    private PurchaseHistoryResponseDTO toDTO(PurchaseHistory ph) {
-        return purchaseHistoryMapper.toResponseDTO(ph);
-    }
 }

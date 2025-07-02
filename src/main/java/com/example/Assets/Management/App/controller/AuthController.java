@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -173,7 +172,7 @@ public class AuthController {
     @Operation(summary = "Reset User Password")
     public Map<String, String> resetPassword(@RequestBody Map<String, String> payload) {
         String email = payload.get("email");
-        String otp = payload.get("otp");
+        // String otp = payload.get("otp");
         String newPassword = payload.get("newPassword");
 
         // if (!otpService.validateOtp(email, otp)) {
@@ -199,7 +198,7 @@ public class AuthController {
         }
         
         String email = jwtUtil.getUsernameFromToken(refreshToken);
-        Users user = userRepository.findByEmail(email)
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         String newToken = jwtUtil.generateToken(email);

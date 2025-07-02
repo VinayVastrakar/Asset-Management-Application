@@ -2,13 +2,11 @@ package com.example.Assets.Management.App.service;
 
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
-import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.dto.mapper.PurchaseHistoryMapper;
 import com.example.Assets.Management.App.dto.mapper.AssetMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,7 +21,6 @@ public class DashboardService {
     private final PurchaseHistoryMapper purchaseHistoryMapper;
     private final AssetMapper assetMapper;
 
-    @Autowired
     public DashboardService(AssetRepository assetRepository, UserRepository userRepository,
                            PurchaseHistoryRepository purchaseHistoryRepository,
                            PurchaseHistoryMapper purchaseHistoryMapper,

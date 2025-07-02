@@ -1,7 +1,5 @@
 package com.example.Assets.Management.App.service;
 
-import com.example.Assets.Management.App.dto.requestDto.DepreciationRateRequestDTO;
-import com.example.Assets.Management.App.dto.responseDto.DepreciationRateResponseDTO;
 import com.example.Assets.Management.App.model.DepreciationRate;
 import com.example.Assets.Management.App.Enums.DepreciationMethod;
 import com.example.Assets.Management.App.repository.DepreciationRateRepository;
@@ -9,10 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional

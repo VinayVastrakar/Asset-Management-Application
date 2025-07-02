@@ -1,12 +1,6 @@
 package com.example.Assets.Management.App.controller;
 
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
-import com.example.Assets.Management.App.model.Asset;
-import com.example.Assets.Management.App.model.PurchaseHistory;
-import com.example.Assets.Management.App.model.Users;
-import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
-import com.example.Assets.Management.App.service.AssetService;
-import com.example.Assets.Management.App.service.UserService;
 import com.example.Assets.Management.App.service.DashboardService;
 import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,24 +10,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
-    
-    @Autowired
-    private AssetService assetService;
-
-    @Autowired
-    private PurchaseHistoryRepository purchaseHistoryRepository;
-    
-    @Autowired
-    private UserService userService;
     
     @Autowired
     private DashboardService dashboardService;

@@ -48,7 +48,7 @@ public class AssetController {
 
     @Operation(summary = "Get all assets")
     @GetMapping
-    public ResponseEntity getAllAssets(
+    public ResponseEntity<?> getAllAssets(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int limit,
         @RequestParam(required = false) Long categoryId,
@@ -64,7 +64,7 @@ public class AssetController {
 
     @Operation(summary = "Get all assets")
     @GetMapping("/unpurchase-asset")
-    public ResponseEntity getAssetsNotInPurchaseHistory(
+    public ResponseEntity<?> getAssetsNotInPurchaseHistory(
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int limit,
         @RequestParam(required = false) Long categoryId,
@@ -81,13 +81,13 @@ public class AssetController {
 
     @Operation(summary = "Get asset by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<AssetResponseDTO> getAssetById(@PathVariable Long id) {
-        return new ResponseEntity<>(assetService.getAssetById(id), HttpStatus.OK);
+    public ResponseEntity<?> getAssetById(@PathVariable Long id) {
+        return ResponseEntity.ok(assetService.getAssetById(id));
     }
 
     @Operation(summary = "Create new asset")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity createAssetWithImage(
+    public ResponseEntity<?> createAssetWithImage(
             @RequestPart("asset") String assetJson,
             @RequestPart(value = "file", required = false) MultipartFile file, Authentication authentication) {
 
@@ -118,7 +118,7 @@ public class AssetController {
 
     @Operation(summary = "Update asset by ID (with optional image upload)")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity updateAsset(
+    public ResponseEntity<?> updateAsset(
             @PathVariable Long id,
             @RequestPart("asset") String assetJson,
             @RequestPart(value = "file", required = false) MultipartFile file,
@@ -154,34 +154,34 @@ public class AssetController {
 
     @Operation(summary = "Inactive asset by asset_id")
     @PutMapping("/inactive/{id}")
-    public ResponseEntity<Void> inactiveAsset(@PathVariable Long id) {
+    public ResponseEntity<?> inactiveAsset(@PathVariable Long id) {
         assetService.inactiveAsset(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(Map.of("message", "Asset inactive successfully"));
     }
 
     @Operation(summary = "Inactive asset by asset_id")
     @PutMapping("/active/{id}")
-    public ResponseEntity<Void> activeAsset(@PathVariable Long id) {
+    public ResponseEntity<?> activeAsset(@PathVariable Long id) {
         assetService.activeAsset(id);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Delete asset by asset_id")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAsset(@PathVariable Long id) {
+    public ResponseEntity<?> deleteAsset(@PathVariable Long id) {
         assetService.deleteAsset(id);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Get all accet by user")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<AssetResponseDTO>> getAssetsByUser(@PathVariable Long userId) {
+    public ResponseEntity<?> getAssetsByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(assetService.getAssetsByUser(userId));
     }
 
     @Operation(summary = "Get all accet by category")
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<AssetResponseDTO>> getAssetsByCategory(@PathVariable Long categoryId) {
+    public ResponseEntity<?> getAssetsByCategory(@PathVariable Long categoryId) {
         return ResponseEntity.ok(assetService.getAssetsByCategory(categoryId));
     }
 
@@ -204,7 +204,7 @@ public class AssetController {
 
     @Operation(summary = "Reassign asset to another user")
     @PutMapping("/{id}/reassign")
-    public ResponseEntity<AssetResponseDTO> reassignAsset(
+    public ResponseEntity<?> reassignAsset(
             @PathVariable Long id,
             @RequestParam Long userId,
             Authentication authentication) {
@@ -215,7 +215,7 @@ public class AssetController {
 
     @Operation(summary = "Return asset (make available)")
     @PutMapping("/{id}/return")
-    public ResponseEntity<AssetResponseDTO> returnAsset(
+    public ResponseEntity<?> returnAsset(
             @PathVariable Long id,
             Authentication authentication) {
         String username = authentication.getName();

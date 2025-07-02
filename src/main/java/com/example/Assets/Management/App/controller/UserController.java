@@ -4,14 +4,11 @@ import com.example.Assets.Management.App.Enums.Role;
 import com.example.Assets.Management.App.Enums.Status;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
-import com.example.Assets.Management.App.security.JwtUtil;
 import com.example.Assets.Management.App.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.hibernate.query.NativeQuery.ReturnProperty;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
@@ -33,17 +30,13 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    public UserController(EmailService emailService, PasswordEncoder passwordEncoder) {
+    public UserController(EmailService emailService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
-    }
+        this.userRepository = userRepository;
+        }
 
     @GetMapping
     @Operation(summary = "Get All Users (Paginated)")
@@ -157,7 +150,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update User Data")
-    public ResponseEntity updateUser(
+    public ResponseEntity<?> updateUser(
         @PathVariable Long id, 
         @RequestBody Users users){
             Users u = userRepository.findById(id).get();
