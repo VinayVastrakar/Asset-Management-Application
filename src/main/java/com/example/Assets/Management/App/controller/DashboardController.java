@@ -7,6 +7,8 @@ import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
 import com.example.Assets.Management.App.service.AssetService;
 import com.example.Assets.Management.App.service.UserService;
+import com.example.Assets.Management.App.service.DashboardService;
+import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,70 +34,13 @@ public class DashboardController {
     @Autowired
     private UserService userService;
     
+    @Autowired
+    private DashboardService dashboardService;
+    
     @GetMapping("/stats")
     public ResponseEntity<?> getDashboardStats() {
         try {
-            // Get total assets count
-            List<AssetResponseDTO> assets = assetService.getAllAssets();
-            long totalAssets = assets.size();
-            
-            // Get total users count
-            List<Users> users = userService.getAllUsers();
-            long totalUsers = users.size();
-            
-            // Get assets by category
-            Map<String, Long> categoryCount = assets.stream()
-                .collect(Collectors.groupingBy(
-                    asset -> asset.getCategoryName(),
-                    Collectors.counting()
-                ));
-            
-            // Convert to required format
-            List<Map<String, Object>> categoryWise = categoryCount.entrySet().stream()
-                .map(entry -> {
-                    Map<String, Object> category = new HashMap<>();
-                    category.put("category", entry.getKey());
-                    category.put("count", entry.getValue());
-                    return category;
-                })
-                .collect(Collectors.toList());
-
-            // Calculate expiring soon (within next 30 days) from PurchaseHistory
-            LocalDate now = LocalDate.now();
-            LocalDate oneMonthFromNow = now.plusMonths(1);
-            long expiringSoonCount = purchaseHistoryRepository.findByExpiryDateBetween(now, oneMonthFromNow)
-                .stream()
-                .filter(history -> "Yes".equalsIgnoreCase(history.getNotify()))
-                .count();
-
-            // Calculate expired assets from PurchaseHistory
-            long expiredAssetCount = purchaseHistoryRepository.findByExpiryDateBefore(now)
-                .stream()
-                .filter(history -> "Yes".equalsIgnoreCase(history.getNotify()))
-                .count();
-            
-            // Assigned / Non-Assigned count
-            long assignedAssetCount = assets.stream()
-                .filter(asset -> asset.getAssignedToUserName() != null)
-                .count();
-
-            long nonAssignedAssetCount = totalAssets - assignedAssetCount;
-
-            // Create response
-            Map<String, Object> response = new HashMap<>();
-            response.put("data", Map.of(
-                "totalAssets", totalAssets,
-                "totalUsers", totalUsers,
-                "categoryWise", categoryWise,
-                "expiringSoonCount", expiringSoonCount,
-                "expiredAssets", expiredAssetCount,
-                "assignedAssets", assignedAssetCount,
-                "nonAssignedAssets", nonAssignedAssetCount
-            ));
-            response.put("message", "Dashboard statistics retrieved successfully");
-            response.put("status", 200);
-            
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(dashboardService.getDashboardStats());
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("message", "Error fetching dashboard statistics: " + e.getMessage());
@@ -103,5 +48,46 @@ public class DashboardController {
             errorResponse.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
+    }
+
+    // New endpoints for DashboardService methods
+    @GetMapping("/assets")
+    public ResponseEntity<List<AssetResponseDTO>> getAllAssets() {
+        return ResponseEntity.ok(dashboardService.getAllAssets());
+    }
+
+    @GetMapping("/assets/assigned")
+    public ResponseEntity<List<AssetResponseDTO>> getAssignedAssets() {
+        return ResponseEntity.ok(dashboardService.getAssignedAssets());
+    }
+
+    @GetMapping("/assets/non-assigned")
+    public ResponseEntity<List<AssetResponseDTO>> getNonAssignedAssets() {
+        return ResponseEntity.ok(dashboardService.getNonAssignedAssets());
+    }
+
+    @GetMapping("/expiring-soon")
+    public ResponseEntity<List<PurchaseHistoryResponseDTO>> getExpiringSoon() {
+        return ResponseEntity.ok(dashboardService.getExpiringSoon());
+    }
+
+    @GetMapping("/expired")
+    public ResponseEntity<List<PurchaseHistoryResponseDTO>> getExpired() {
+        return ResponseEntity.ok(dashboardService.getExpired());
+    }
+
+    @GetMapping("/total-assets")
+    public ResponseEntity<Long> getTotalAssets() {
+        return ResponseEntity.ok(dashboardService.getTotalAssets());
+    }
+
+    @GetMapping("/total-users")
+    public ResponseEntity<Long> getTotalUsers() {
+        return ResponseEntity.ok(dashboardService.getTotalUsers());
+    }
+
+    @GetMapping("/category-wise")
+    public ResponseEntity<List<Map<String, Object>>> getCategoryWiseAssets() {
+        return ResponseEntity.ok(dashboardService.getCategoryWiseAssets());
     }
 }
