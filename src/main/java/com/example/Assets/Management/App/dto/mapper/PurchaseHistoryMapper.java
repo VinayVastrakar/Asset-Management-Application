@@ -2,17 +2,33 @@ package com.example.Assets.Management.App.dto.mapper;
 
 import com.example.Assets.Management.App.dto.PurchaseHistoryDTO;
 import com.example.Assets.Management.App.dto.requestDto.PurchaseHistoryRequestDTO;
+import com.example.Assets.Management.App.dto.responseDto.DepreciationRateResponseDTO;
 import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
 import com.example.Assets.Management.App.model.PurchaseHistory;
+import com.example.Assets.Management.App.repository.DepreciationRateRepository;
+import com.example.Assets.Management.App.service.DepreciationService;
+import com.example.Assets.Management.App.service.DepreciationRateService;
+
+import java.time.LocalDate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+
 
 @Component
 public class PurchaseHistoryMapper {
-    
+    @Autowired
+    private DepreciationService depreciationService;
+    @Autowired
+    private DepreciationRateService depreciationRateService;
+
+    @Autowired
+    private DepreciationRateRepository depreciationRateRepository;
+
     // Convert Entity to regular DTO
     public PurchaseHistoryDTO toDTO(PurchaseHistory entity) {
         if (entity == null) return null;
-        
+        String financialYear = depreciationService.getFinancialYear(entity.getPurchaseDate());
         PurchaseHistoryDTO dto = new PurchaseHistoryDTO();
         dto.setId(entity.getId());
         dto.setAssetId(entity.getAsset().getId());
@@ -24,9 +40,11 @@ public class PurchaseHistoryMapper {
         dto.setQty(entity.getQty());
         dto.setVendorName(entity.getVendorName());
         dto.setInvoiceNumber(entity.getInvoiceNumber());
+
         dto.setWarrantyPeriod(entity.getWarrantyPeriod());
-        dto.setDescription(entity.getDescription());
-        
+        dto.setDescription(entity.getDescription());    
+        dto.setCurrentValue(depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now()));
+        dto.setTotalDepreciation(depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), financialYear));
         return dto;
     }
     
@@ -67,6 +85,17 @@ public class PurchaseHistoryMapper {
     // Convert Entity to ResponseDTO
     public PurchaseHistoryResponseDTO toResponseDTO(PurchaseHistory entity) {
         if (entity == null) return null;
+        double currentValue = 0;
+        double totalDepreciation = 0;
+        try {
+            DepreciationRateResponseDTO depreciationRate = depreciationRateService.getByCategoryIdAndFinancialYear(entity.getAsset().getCategory().getId(), depreciationService.getFinancialYear(entity.getPurchaseDate()));
+            currentValue = depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), depreciationRateRepository.findById(depreciationRate.getId()).get(), LocalDate.now());
+            totalDepreciation = depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), depreciationService.getFinancialYear(entity.getPurchaseDate()));
+        } catch (Exception e) {
+            currentValue = entity.getPurchasePrice();
+            totalDepreciation = 0;
+            e.printStackTrace();
+        }
         
         return PurchaseHistoryResponseDTO.builder()
                 .id(entity.getId())
@@ -79,6 +108,8 @@ public class PurchaseHistoryMapper {
                 .warrantyPeriod(entity.getWarrantyPeriod())
                 .qty(entity.getQty())
                 .billUrl(entity.getBillUrl())
+                .currentValue(currentValue)
+                .totalDepreciation(totalDepreciation)
                 .expiryDate(entity.getExpiryDate())
                 .notify(entity.getNotify())
                 .vendor(entity.getVendorName())         // Note: mapping 'vendorName' to 'vendor'

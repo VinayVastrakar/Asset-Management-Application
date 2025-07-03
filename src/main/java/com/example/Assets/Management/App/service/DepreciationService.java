@@ -81,7 +81,6 @@ public class DepreciationService {
         double currentValue = purchasePrice;
         String currentFY = purchaseFY;
         boolean isFirstYear = true;
-        
         // Calculate depreciation year by year until we reach the target FY
         while (currentFY.compareTo(targetFY) <= 0) {
             double depreciation = 0.0;

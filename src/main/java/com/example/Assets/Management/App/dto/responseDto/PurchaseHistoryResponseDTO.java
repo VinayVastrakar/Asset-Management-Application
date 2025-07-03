@@ -24,5 +24,7 @@ public class PurchaseHistoryResponseDTO {
     private String billUrl;
     private String notify;
     private Double amount;
+    private Double currentValue;
+    private Double totalDepreciation;
     private String vendor;
 }

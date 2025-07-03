@@ -160,4 +160,22 @@ public class AssetValuationService {
         int year = Integer.parseInt(parts[0]);
         return LocalDate.of(year + 1, 3, 31);
     }
+
+    public double getTotalPurchaseValue() {
+        return purchaseHistoryRepository.findAll().stream()
+            .mapToDouble(PurchaseHistory::getPurchasePrice)
+            .sum();
+    }
+
+    public double getTotalLatestPurchaseValue() {
+        Map<Long, Optional<PurchaseHistory>> latestByAsset = purchaseHistoryRepository.findAll().stream()
+            .collect(Collectors.groupingBy(
+                ph -> ph.getAsset().getId(),
+                Collectors.maxBy(Comparator.comparing(PurchaseHistory::getPurchaseDate))
+            ));
+        return latestByAsset.values().stream()
+            .filter(Optional::isPresent)
+            .mapToDouble(opt -> opt.get().getPurchasePrice())
+            .sum();
+    }
 }

@@ -20,4 +20,6 @@ public class PurchaseHistoryDTO {
     private Integer qty;
     private String notify;
     private String description;
+    private Double currentValue;
+    private Double totalDepreciation;
 } 
