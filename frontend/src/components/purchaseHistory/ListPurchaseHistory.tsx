@@ -127,6 +127,9 @@ const ListPurchaseHistory: React.FC = () => {
                   Expiry Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Current Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Qty
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -150,6 +153,7 @@ const ListPurchaseHistory: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {history.expiryDate ? new Date(history.expiryDate).toLocaleDateString() : 'N/A'}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">₹{history.currentValue}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{history.qty}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{history.notify || 'No'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

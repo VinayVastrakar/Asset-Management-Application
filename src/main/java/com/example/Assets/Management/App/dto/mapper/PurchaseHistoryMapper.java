@@ -43,8 +43,8 @@ public class PurchaseHistoryMapper {
 
         dto.setWarrantyPeriod(entity.getWarrantyPeriod());
         dto.setDescription(entity.getDescription());    
-        dto.setCurrentValue(depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now()));
-        dto.setTotalDepreciation(depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), financialYear));
+        dto.setCurrentValue(roundToTwo(depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now())));
+        dto.setTotalDepreciation(roundToTwo(depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), financialYear)));
         return dto;
     }
     
@@ -108,11 +108,15 @@ public class PurchaseHistoryMapper {
                 .warrantyPeriod(entity.getWarrantyPeriod())
                 .qty(entity.getQty())
                 .billUrl(entity.getBillUrl())
-                .currentValue(currentValue)
-                .totalDepreciation(totalDepreciation)
+                .currentValue(roundToTwo(currentValue))
+                .totalDepreciation(roundToTwo(totalDepreciation))
                 .expiryDate(entity.getExpiryDate())
                 .notify(entity.getNotify())
                 .vendor(entity.getVendorName())         // Note: mapping 'vendorName' to 'vendor'
                 .build();
     }
+    public double roundToTwo(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+    
 }

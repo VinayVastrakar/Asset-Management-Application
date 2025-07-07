@@ -8,6 +8,7 @@ export interface PurchaseHistory {
   assetName: string;
   purchaseDate: string;
   amount: number;
+  currentValue: number;
   vendor: string;
   notify: string;
   expiryDate: string;
