@@ -80,11 +80,8 @@ public class DepreciationRateService {
         depreciationRateRepository.deleteById(id);
     }
     public DepreciationRateResponseDTO getByCategoryIdAndFinancialYear(Long categoryId, String financialYear) {
-        System.out.println("Category ID: " + categoryId + " Financial Year: " + financialYear);
         DepreciationRate rate = depreciationRateRepository.findByCategoryIdAndFinancialYear(categoryId, financialYear)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Depreciation rate not found"));
-        System.out.println("Rate: " + rate);
-        System.out.println("Rate: " + toResponseDTO(rate));
         return toResponseDTO(rate);
     }
 

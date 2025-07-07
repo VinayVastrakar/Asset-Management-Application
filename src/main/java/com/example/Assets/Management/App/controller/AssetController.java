@@ -97,7 +97,6 @@ public class AssetController {
 
             // Convert DTO to entity
             Asset asset = assetMapper.toEntity(assetRequestDTO);
-            System.out.println(asset);
 
             // If file is provided, upload image and set image data
             if (file != null && !file.isEmpty()) {
@@ -109,6 +108,7 @@ public class AssetController {
             // Save the asset with or without image
             asset.setLastModifiedBy(userRepository.findByEmail(changeby).get());
             Asset savedAsset = assetRepository.save(asset);
+            System.out.println(savedAsset);
             Map<String,Object> res = Map.of("data", assetMapper.toResponseDTO(savedAsset));
             return ResponseEntity.ok(res);
         } catch (Exception e) {
