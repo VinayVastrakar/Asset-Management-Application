@@ -92,7 +92,7 @@ public class PurchaseHistoryMapper {
             currentValue = depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), depreciationRateRepository.findById(depreciationRate.getId()).get(), LocalDate.now());
             totalDepreciation = depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), depreciationService.getFinancialYear(entity.getPurchaseDate()));
         } catch (Exception e) {
-            currentValue = entity.getPurchasePrice();
+            currentValue = 0;
             totalDepreciation = 0;
             e.printStackTrace();
         }
