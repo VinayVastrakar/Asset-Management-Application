@@ -96,12 +96,11 @@ public class AssetValuationService {
         valuation.setPurchasePrice(purchaseHistory.getPurchasePrice());
         
         // Calculate current value and depreciation
-        LocalDate fyEndDate = getFinancialYearEndDate(financialYear);
         double currentValue = depreciationService.getCurrentValue(
             purchaseHistory.getPurchasePrice(), 
             purchaseHistory.getPurchaseDate(), 
             asset.getCategory().getId(), 
-            fyEndDate
+            LocalDate.now()
         );
         
         double totalDepreciation = purchaseHistory.getPurchasePrice() - currentValue;
@@ -114,7 +113,7 @@ public class AssetValuationService {
             purchaseHistory.getPurchasePrice(),
             purchaseHistory.getPurchaseDate(),
             asset.getCategory().getId(),
-            financialYear
+            LocalDate.now()
         );
         valuation.setDepreciationThisYear(depreciationThisYear);
         

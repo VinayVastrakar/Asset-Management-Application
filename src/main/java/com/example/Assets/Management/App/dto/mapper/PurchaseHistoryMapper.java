@@ -28,7 +28,6 @@ public class PurchaseHistoryMapper {
     // Convert Entity to regular DTO
     public PurchaseHistoryDTO toDTO(PurchaseHistory entity) {
         if (entity == null) return null;
-        String financialYear = depreciationService.getFinancialYear(entity.getPurchaseDate());
         PurchaseHistoryDTO dto = new PurchaseHistoryDTO();
         dto.setId(entity.getId());
         dto.setAssetId(entity.getAsset().getId());
@@ -44,7 +43,7 @@ public class PurchaseHistoryMapper {
         dto.setWarrantyPeriod(entity.getWarrantyPeriod());
         dto.setDescription(entity.getDescription());    
         dto.setCurrentValue(roundToTwo(depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now())));
-        dto.setTotalDepreciation(roundToTwo(depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), financialYear)));
+        dto.setTotalDepreciation(roundToTwo(depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now())));
         return dto;
     }
     
@@ -89,8 +88,8 @@ public class PurchaseHistoryMapper {
         double totalDepreciation = 0;
         try {
             DepreciationRateResponseDTO depreciationRate = depreciationRateService.getByCategoryIdAndFinancialYear(entity.getAsset().getCategory().getId(), depreciationService.getFinancialYear(entity.getPurchaseDate()));
-            currentValue = depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), depreciationRateRepository.findById(depreciationRate.getId()).get(), LocalDate.now());
-            totalDepreciation = depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), depreciationService.getFinancialYear(entity.getPurchaseDate()));
+            currentValue = depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now());
+            totalDepreciation = depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now());
         } catch (Exception e) {
             currentValue = 0;
             totalDepreciation = 0;
