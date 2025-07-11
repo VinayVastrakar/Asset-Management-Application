@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 
 @Service
 @Transactional
@@ -75,79 +76,55 @@ public class DepreciationService {
      */
     public double calculateDepreciation(double purchasePrice, LocalDate purchaseDate, 
                                       Long categoryId, LocalDate asOfDate) {
-        String purchaseFY = getFinancialYear(purchaseDate);
-        String targetFY = getFinancialYear(asOfDate);
-        
-        double currentValue = purchasePrice;
-        String currentFY = purchaseFY;
-        boolean isFirstYear = true;
-
-        List<DepreciationRate> depreciationRates = depreciationRateRepository.findByCategoryId(categoryId).stream()
-        .filter(rate->{
-            LocalDate rateStart = rate.getEffectiveFromDate();
-            LocalDate rateEnd = rate.getEffectiveToDate();
-            return !(rateEnd.isBefore(purchaseDate)|| rateStart.isAfter(asOfDate));
-        }).collect(Collectors.toList());
-        System.out.println("Repreaciation rates ---------"+depreciationRates);
-        System.out.println("Repreaciation size ---------"+depreciationRates.size());
-        long daysHeld;
-        for (DepreciationRate rate : depreciationRates) {
-            long totalDays = rate.getEffectiveFromDate().isLeapYear() ? 366 : 365;
-            if(rate.getDepreciationMethod().equals(DepreciationMethod.PRO_RATA)){
-                double annualDepreciation = (purchasePrice * (rate.getDepreciationPercentage() / 100));
-                if(purchaseDate.isAfter(rate.getEffectiveFromDate()) && rate.getEffectiveToDate().isBefore(asOfDate)){
-                    daysHeld = ChronoUnit.DAYS.between(purchaseDate, asOfDate.plusDays(1));
-                }
-                
-
-            }
+        // Validate input dates
+        if (asOfDate.isBefore(purchaseDate)) {
+            return 0.0; // No depreciation if asOfDate is before purchase
         }
 
-        // while (currentFY.compareTo(targetFY) <= 0) {
-        //     // Fetch the rate for this year, not just the purchase date!
-        //     Optional<DepreciationRate> rateOpt = getApplicableRate(categoryId, getFinancialYearStartDate(currentFY));
-        //     if (rateOpt.isEmpty()) break; // Or handle as needed
+        double currentValue = purchasePrice;
+        LocalDate currentDate = purchaseDate;
 
-        //     DepreciationRate rate = rateOpt.get();
-        //     double depreciation = 0.0;
+        // Get all applicable depreciation rates for the period 
+        List<DepreciationRate> depreciationRates = depreciationRateRepository.findByCategoryId(categoryId)
+            .stream()
+            .filter(rate -> !rate.getEffectiveToDate().isBefore(purchaseDate)) // Rates ending on or after purchase
+            .filter(rate -> !rate.getEffectiveFromDate().isAfter(asOfDate)) // Rates starting on or before asOfDate
+            .sorted(Comparator.comparing(DepreciationRate::getEffectiveFromDate))
+            .collect(Collectors.toList());
 
-        //     if (DepreciationMethod.SLM.equals(rate.getDepreciationMethod())) {
-        //         double annualDepreciation = (purchasePrice * (1 - rate.getResidualValuePercentage() / 100)) 
-        //                                   / rate.getUsefulLifeYears();
-        //         if (isFirstYear) {
-        //             LocalDate fyStart = getFinancialYearStartDate(currentFY);
-        //             LocalDate fyEnd = fyStart.plusYears(1).minusDays(1);
-        //             long daysHeld = ChronoUnit.DAYS.between(purchaseDate, asOfDate.plusDays(1));
-        //             long totalDays = fyStart.isLeapYear() ? 366 : 365;
-        //             depreciation = annualDepreciation * ((double) daysHeld / totalDays);
-        //         } else {
-        //             depreciation = annualDepreciation;
-        //         }
-        //     } else if (DepreciationMethod.WDV.equals(rate.getDepreciationMethod())) {
-        //         depreciation = currentValue * (rate.getDepreciationPercentage() / 100);
-        //     } else if (DepreciationMethod.PRO_RATA.equals(rate.getDepreciationMethod())) {
-        //         LocalDate fyStart = getFinancialYearStartDate(currentFY);
-        //         LocalDate fyEnd = fyStart.plusYears(1).minusDays(1);
-        //         long daysHeld;
-        //         if (isFirstYear) {
-        //             daysHeld = java.time.temporal.ChronoUnit.DAYS.between(purchaseDate, asOfDate.plusDays(1));
-        //         } else {
-        //             daysHeld = java.time.temporal.ChronoUnit.DAYS.between(fyStart, fyEnd.plusDays(1));
-        //         }
-        //         System.out.println("daysHeld: " + daysHeld);
-        //         long totalDays = fyStart.isLeapYear() ? 366 : 365;
-        //         double annualDepreciation = (purchasePrice * (rate.getDepreciationPercentage() / 100));
-        //         depreciation = annualDepreciation * ((double) daysHeld / totalDays);
-        //         isFirstYear = false;
-        //     }
-        //     currentValue -= depreciation;
+        // Rest of the method remains the same...
+        if (depreciationRates.isEmpty()) {
+            return 0.0;
+        }
 
-        //     if (currentFY.equals(targetFY)) break;
-        //     currentFY = nextFinancialYear(currentFY);
-        //     isFirstYear = false;
-        // }
-        // return purchasePrice - currentValue;
-        return purchasePrice-currentValue;
+        for (DepreciationRate rate : depreciationRates) {
+            if (!DepreciationMethod.PRO_RATA.equals(rate.getDepreciationMethod())) {
+                continue;
+            }
+
+            LocalDate rateStart = rate.getEffectiveFromDate();
+            LocalDate rateEnd = rate.getEffectiveToDate();
+            
+            LocalDate periodStart = currentDate.isAfter(rateStart) ? currentDate : rateStart;
+            LocalDate periodEnd = asOfDate.isBefore(rateEnd) ? asOfDate : rateEnd;
+            
+            if (periodStart.isAfter(periodEnd)) {
+                continue;
+            }
+
+            long daysInPeriod = ChronoUnit.DAYS.between(periodStart, periodEnd.plusDays(1));
+            long daysInYear = periodStart.isLeapYear() ? 366 : 365;
+
+            double annualDepreciation = currentValue * (rate.getDepreciationPercentage() / 100);
+            double periodDepreciation = annualDepreciation * daysInPeriod / daysInYear;
+            
+            currentValue -= periodDepreciation;
+            currentDate = periodEnd.plusDays(1);
+            if (currentDate.isAfter(asOfDate)) {
+                break;
+            }
+        }
+        return purchasePrice - currentValue;
     }
     
     /**
