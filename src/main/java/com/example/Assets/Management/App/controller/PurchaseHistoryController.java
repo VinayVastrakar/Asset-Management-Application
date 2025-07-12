@@ -2,6 +2,7 @@ package com.example.Assets.Management.App.controller;
 
 import com.example.Assets.Management.App.dto.requestDto.PurchaseHistoryRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
+import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryPageResponse;
 import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.PurchaseHistoryService;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,7 +37,7 @@ public class PurchaseHistoryController {
 
     @GetMapping
     @Operation(summary = "Get Purchase History with optional asset filter and pagination")
-    public Page<PurchaseHistoryResponseDTO> getPurchaseHistories(
+    public PurchaseHistoryPageResponse getPurchaseHistories(
         @Parameter(description = "Page number (0-based)", example = "0")
         @RequestParam(defaultValue = "0") int page,
 
@@ -52,9 +52,9 @@ public class PurchaseHistoryController {
         @RequestParam(required = false) Long assetId
     ) {
         if (assetId != null) {
-            return service.getByAssetId(assetId, page, size, sort);
+            return service.getByAssetIdWithTotalValue(assetId, page, size, sort);
         } else {
-            return service.getAll(page, size, sort);
+            return service.getAllWithTotalValue(page, size, sort);
         }
     }    
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { purchaseHistoryApi, PurchaseHistory } from '../../api/purchaseHistory.api';
+import { purchaseHistoryApi, PurchaseHistory, PurchaseHistoryResponse } from '../../api/purchaseHistory.api';
 import { assetApi } from '../../api/asset.api';
 import Pagination from '../common/Pagination';
 
@@ -12,6 +12,7 @@ const ListPurchaseHistory: React.FC = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [total, setTotal] = useState(1);
+  const [totalCurrentValue, setTotalCurrentValue] = useState(0);
   const [assetId, setAssetId] = useState<number | undefined>();
   const [status, setStatus] = useState<string | undefined>();
   const [assets, setAssets] = useState<{ id: number; name: string }[]>([]);
@@ -29,9 +30,10 @@ const ListPurchaseHistory: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await purchaseHistoryApi.getPurchaseHistories({ page:page-1, limit, assetId});
+      const response: PurchaseHistoryResponse = await purchaseHistoryApi.getPurchaseHistories({ page:page-1, limit, assetId});
       setPurchaseHistories(response.content);
-      setTotal(response.size);
+      setTotal(response.totalElements);
+      setTotalCurrentValue(response.totalCurrentValue);
       console.log(response);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch purchase histories');
@@ -67,29 +69,42 @@ const ListPurchaseHistory: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-semibold text-gray-800">Purchase History</h1>
+    <div className="container mx-auto px-2 sm:px-4 py-8 overflow-x-hidden w-full">
+      <div className="max-w-7xl mx-auto w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 w-full">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">Purchase History</h1>
           <button
             onClick={() => navigate('/purchase-history/add')}
-            className="bg-primary text-white px-4 py-2 text-sm font-medium rounded hover:bg-primary-dark"
+            className="bg-primary text-white px-4 py-2 text-sm font-medium rounded hover:bg-primary-dark w-full sm:w-auto"
           >
             Add New Purchase
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm w-full">
             {error}
           </div>
         )}
 
-        <div className="mb-4 flex space-x-4">
+        {/* Total Current Value Summary */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+            <div>
+              <h3 className="text-lg font-medium text-blue-900">Total Current Value</h3>
+              <p className="text-sm text-blue-700">Sum of all current values on this page</p>
+            </div>
+            <div className="text-left sm:text-right">
+              <p className="text-xl sm:text-2xl font-bold text-blue-900">₹{totalCurrentValue.toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full">
           <select
             value={assetId || ''}
             onChange={(e) => setAssetId(e.target.value ? Number(e.target.value) : undefined)}
-            className="border rounded px-3 py-2"
+            className="border rounded px-3 py-2 w-full sm:w-auto"
           >
             <option value="">All Assets</option>
             {assets.map((asset) => (
@@ -99,13 +114,14 @@ const ListPurchaseHistory: React.FC = () => {
             ))}
           </select>
 
-          <button onClick={() => fetchData()} className="bg-blue-500 text-white px-4 py-2 rounded">
+          <button onClick={() => fetchData()} className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto">
             Apply Filters
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block bg-white rounded-lg shadow overflow-x-auto w-full">
+          <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -127,7 +143,7 @@ const ListPurchaseHistory: React.FC = () => {
                   Expiry Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Current Value
+                  Current Value
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Qty
@@ -140,7 +156,7 @@ const ListPurchaseHistory: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200 w-full">
               {purchaseHistories.map((history) => (
                 <tr key={history.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{history.assetName}</td>
@@ -174,7 +190,7 @@ const ListPurchaseHistory: React.FC = () => {
               ))}
               {purchaseHistories.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan={10} className="px-6 py-4 text-center text-sm text-gray-500">
                     No purchase histories found
                   </td>
                 </tr>
@@ -183,11 +199,81 @@ const ListPurchaseHistory: React.FC = () => {
           </table>
         </div>
 
-        <Pagination
-          currentPage={page}
-          totalPages={Math.ceil(total / limit)}
-          onPageChange={(newPage) => setPage(newPage)}
-        />
+        {/* Mobile Card View */}
+        <div className="lg:hidden space-y-4 w-full">
+          {purchaseHistories.map((history) => (
+            <div key={history.id} className="bg-white rounded-lg shadow p-4 w-full">
+              <div className="flex justify-between items-start mb-3 w-full">
+                <h3 className="text-lg font-semibold text-gray-900">{history.assetName}</h3>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => navigate(`/purchase-history/asset/${history.id}`)}
+                    className="text-blue-600 hover:text-blue-900 text-sm"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => navigate(`/purchase-history/edit/${history.id}`)}
+                    className="text-yellow-600 hover:text-yellow-900 text-sm"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 text-sm w-full">
+                <div>
+                  <span className="text-gray-500">Purchase Date:</span>
+                  <p className="font-medium">{new Date(history.purchaseDate).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Price:</span>
+                  <p className="font-medium">₹{history.amount}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Vendor:</span>
+                  <p className="font-medium">{history.vendor}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Invoice:</span>
+                  <p className="font-medium">{history.invoiceNumber}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Expiry Date:</span>
+                  <p className="font-medium">
+                    {history.expiryDate ? new Date(history.expiryDate).toLocaleDateString() : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Current Value:</span>
+                  <p className="font-medium text-green-600">₹{history.currentValue}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Quantity:</span>
+                  <p className="font-medium">{history.qty}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Notify:</span>
+                  <p className="font-medium">{history.notify || 'No'}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {purchaseHistories.length === 0 && (
+            <div className="bg-white rounded-lg shadow p-8 text-center w-full">
+              <p className="text-gray-500">No purchase histories found</p>
+            </div>
+          )}
+        </div>
+ 
+        <div className="mt-6 w-full">
+          <Pagination
+            currentPage={page}
+            totalPages={Math.ceil(total / limit)}
+            onPageChange={(newPage) => setPage(newPage)}
+          />
+        </div>
       </div>
     </div>
   );

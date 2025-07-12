@@ -3,6 +3,7 @@ package com.example.Assets.Management.App.service;
 import com.example.Assets.Management.App.dto.mapper.PurchaseHistoryMapper;
 import com.example.Assets.Management.App.dto.requestDto.PurchaseHistoryRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryResponseDTO;
+import com.example.Assets.Management.App.dto.responseDto.PurchaseHistoryPageResponse;
 import com.example.Assets.Management.App.model.Asset;
 import com.example.Assets.Management.App.model.PurchaseHistory;
 import com.example.Assets.Management.App.model.Users;
@@ -21,6 +22,8 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 
 import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PurchaseHistoryService {
@@ -39,24 +42,75 @@ public class PurchaseHistoryService {
         this.cloudinary = cloudinary;
     }
 
-    public Page<PurchaseHistoryResponseDTO> getAll(int page, int size, String[] sort) {
+    // public Page<PurchaseHistoryResponseDTO> getAll(int page, int size, String[] sort) {
+    //     Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+    //     Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+        
+    //     return purchaseHistoryRepository.findAll(pageable)
+    //             .map(purchaseHistoryMapper::toResponseDTO);
+    // }
+
+    public PurchaseHistoryPageResponse getAllWithTotalValue(int page, int size, String[] sort) {
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
         
-        return purchaseHistoryRepository.findAll(pageable)
-                .map(purchaseHistoryMapper::toResponseDTO);
+        Page<PurchaseHistory> purchaseHistoryPage = purchaseHistoryRepository.findAll(pageable);
+        List<PurchaseHistoryResponseDTO> content = purchaseHistoryPage.getContent()
+                .stream()
+                .map(purchaseHistoryMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        
+        double totalCurrentValue = content.stream()
+                .mapToDouble(dto -> dto.getCurrentValue() != null ? dto.getCurrentValue() : 0.0)
+                .sum();
+        
+        return PurchaseHistoryPageResponse.builder()
+                .content(content)
+                .pageNumber(purchaseHistoryPage.getNumber())
+                .pageSize(purchaseHistoryPage.getSize())
+                .totalElements(purchaseHistoryPage.getTotalElements())
+                .totalPages(purchaseHistoryPage.getTotalPages())
+                .totalCurrentValue(totalCurrentValue)
+                .build();
     }
 
-    public Page<PurchaseHistoryResponseDTO> getByAssetId(Long assetId, int page, int size, String[] sort) {
+    // public Page<PurchaseHistoryResponseDTO> getByAssetId(Long assetId, int page, int size, String[] sort) {
+    //     assetRepository.findById(assetId)
+    //             .orElseThrow(() -> new EntityNotFoundException("Asset not found with ID: " + assetId));
+
+    //     Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+    //     Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+        
+        
+    //     return purchaseHistoryRepository.findByAssetId(assetId, pageable)
+    //             .map(purchaseHistoryMapper::toResponseDTO);
+    // }
+
+    public PurchaseHistoryPageResponse getByAssetIdWithTotalValue(Long assetId, int page, int size, String[] sort) {
         assetRepository.findById(assetId)
                 .orElseThrow(() -> new EntityNotFoundException("Asset not found with ID: " + assetId));
 
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
         
+        Page<PurchaseHistory> purchaseHistoryPage = purchaseHistoryRepository.findByAssetId(assetId, pageable);
+        List<PurchaseHistoryResponseDTO> content = purchaseHistoryPage.getContent()
+                .stream()
+                .map(purchaseHistoryMapper::toResponseDTO)
+                .collect(Collectors.toList());
         
-        return purchaseHistoryRepository.findByAssetId(assetId, pageable)
-                .map(purchaseHistoryMapper::toResponseDTO);
+        double totalCurrentValue = content.stream()
+                .mapToDouble(dto -> dto.getCurrentValue() != null ? dto.getCurrentValue() : 0.0)
+                .sum();
+        
+        return PurchaseHistoryPageResponse.builder()
+                .content(content)
+                .pageNumber(purchaseHistoryPage.getNumber())
+                .pageSize(purchaseHistoryPage.getSize())
+                .totalElements(purchaseHistoryPage.getTotalElements())
+                .totalPages(purchaseHistoryPage.getTotalPages())
+                .totalCurrentValue(totalCurrentValue)
+                .build();
     }
 
     public PurchaseHistoryResponseDTO createWithBill(PurchaseHistoryRequestDTO requestDto, MultipartFile file, Users u) {

@@ -18,11 +18,13 @@ export interface PurchaseHistory {
   qty: number;
 }
 
-export interface PurchaseHistoryResponse{
-    content?:[];
-    size?:number;
-    totalElements?:number;
-    totalPages?:number;
+export interface PurchaseHistoryResponse {
+  content: PurchaseHistory[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  totalCurrentValue: number;
 }
 
 export interface PurchaseHistoryQueryParams {
@@ -35,7 +37,7 @@ export interface PurchaseHistoryQueryParams {
 
 export const purchaseHistoryApi = {
   getPurchaseHistories: async (params: PurchaseHistoryQueryParams) => {
-    const response = await api.get<ApiResponse<PurchaseHistory[]>>('/api/purchase-history', { params });
+    const response = await api.get<PurchaseHistoryResponse>('/api/purchase-history', { params });
     return response.data;
   },
 
