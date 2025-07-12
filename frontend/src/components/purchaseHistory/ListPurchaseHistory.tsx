@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { purchaseHistoryApi, PurchaseHistory, PurchaseHistoryResponse } from '../../api/purchaseHistory.api';
 import { assetApi } from '../../api/asset.api';
 import Pagination from '../common/Pagination';
+import { saveAs } from 'file-saver';
 
 const ListPurchaseHistory: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +15,8 @@ const ListPurchaseHistory: React.FC = () => {
   const [total, setTotal] = useState(1);
   const [totalCurrentValue, setTotalCurrentValue] = useState(0);
   const [assetId, setAssetId] = useState<number | undefined>();
-  const [status, setStatus] = useState<string | undefined>();
   const [assets, setAssets] = useState<{ id: number; name: string }[]>([]);
+  const [downloading, setDownloading] = useState(false);
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -64,6 +65,18 @@ const ListPurchaseHistory: React.FC = () => {
   //   }
   // };
 
+  const handleExportExcel = async () => {
+    setDownloading(true);
+    try {
+      const blob = await purchaseHistoryApi.downloadExcel({ assetId });
+      saveAs(blob, 'purchase_history.xlsx');
+    } catch (err) {
+      alert('Failed to download Excel report');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading && purchaseHistories.length === 0) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
@@ -73,12 +86,21 @@ const ListPurchaseHistory: React.FC = () => {
       <div className="max-w-7xl mx-auto w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 w-full">
           <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">Purchase History</h1>
-          <button
-            onClick={() => navigate('/purchase-history/add')}
-            className="bg-primary text-white px-4 py-2 text-sm font-medium rounded hover:bg-primary-dark w-full sm:w-auto"
-          >
-            Add New Purchase
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <button
+              onClick={handleExportExcel}
+              className="bg-green-600 text-white px-4 py-2 text-sm font-medium rounded hover:bg-green-700 w-full sm:w-auto disabled:opacity-60"
+              disabled={downloading}
+            >
+              {downloading ? 'Exporting...' : 'Export to Excel'}
+            </button>
+            <button
+              onClick={() => navigate('/purchase-history/add')}
+              className="bg-primary text-white px-4 py-2 text-sm font-medium rounded hover:bg-primary-dark w-full sm:w-auto"
+            >
+              Add New Purchase
+            </button>
+          </div>
         </div>
 
         {error && (

@@ -16,4 +16,8 @@ public interface PurchaseHistoryRepository extends JpaRepository<PurchaseHistory
     List<PurchaseHistory> findByExpiryDateBefore(LocalDate date);
     List<PurchaseHistory> findByExpiryDateBetween(LocalDate startDate, LocalDate endDate);
     boolean existsByAssetIdAndInvoiceNumber(Long assetId, String invoiceNumber);
+
+    // For Excel export
+    List<PurchaseHistory> findByAssetIdAndPurchaseDateBetween(Long assetId, LocalDate start, LocalDate end);
+    List<PurchaseHistory> findByPurchaseDateBetween(LocalDate start, LocalDate end);
 }

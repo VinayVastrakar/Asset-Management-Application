@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/purchase-history")
@@ -57,9 +61,6 @@ public class PurchaseHistoryController {
             return service.getAllWithTotalValue(page, size, sort);
         }
     }    
-
-    
-
 
     @GetMapping("/{id}")
     @Operation(summary = "Get Purchase History by ID")
@@ -118,5 +119,20 @@ public class PurchaseHistoryController {
         
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/export")
+    @Operation(summary = "Export Purchase History as Excel")
+    public ResponseEntity<ByteArrayResource> exportPurchaseHistoryToExcel(
+            @RequestParam(required = false) Long assetId,
+            @RequestParam(required = false) String year
+    ) throws IOException {
+        byte[] excelData = service.exportPurchaseHistoryToExcel(assetId);
+        ByteArrayResource resource = new ByteArrayResource(excelData);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=purchase_history.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentLength(resource.contentLength())
+                .body(resource);
     }
 }

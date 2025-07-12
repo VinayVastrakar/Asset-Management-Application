@@ -41,11 +41,14 @@ export const purchaseHistoryApi = {
     return response.data;
   },
 
-  // getPurchaseHistoryByAssetId : async (params: PurchaseHistoryQueryParams) => {
-  //   console.log("may yaha pauch gya");
-  //   const response = await api.get<ApiResponse<PurchaseHistory[]>>(`/api/purchase-history/asset/${params.assetId}`,{params});
-  //   return response.data;
-  // },
+  // Download Excel report
+  downloadExcel: async (params: { assetId?: number }) => {
+    const query = params.assetId ? `?assetId=${params.assetId}` : '';
+    const response = await api.get(`/api/purchase-history/export${query}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 
   getPurchaseHistoryById: async (id: number) => {
     const response = await api.get<PurchaseHistory>(`/api/purchase-history/${id}`);
