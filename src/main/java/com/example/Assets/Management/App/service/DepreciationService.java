@@ -98,16 +98,14 @@ public class DepreciationService {
         }
 
         for (DepreciationRate rate : depreciationRates) {
-            if (!DepreciationMethod.PRO_RATA.equals(rate.getDepreciationMethod())) {
-                continue;
-            }
-
+            DepreciationMethod method = rate.getDepreciationMethod();
+            double ratePercent = rate.getDepreciationPercentage();
             LocalDate rateStart = rate.getEffectiveFromDate();
             LocalDate rateEnd = rate.getEffectiveToDate();
-            
+
             LocalDate periodStart = currentDate.isAfter(rateStart) ? currentDate : rateStart;
             LocalDate periodEnd = asOfDate.isBefore(rateEnd) ? asOfDate : rateEnd;
-            
+
             if (periodStart.isAfter(periodEnd)) {
                 continue;
             }
@@ -115,10 +113,25 @@ public class DepreciationService {
             long daysInPeriod = ChronoUnit.DAYS.between(periodStart, periodEnd.plusDays(1));
             long daysInYear = periodStart.isLeapYear() ? 366 : 365;
 
-            double annualDepreciation = currentValue * (rate.getDepreciationPercentage() / 100);
-            double periodDepreciation = annualDepreciation * daysInPeriod / daysInYear;
-            
-            currentValue -= periodDepreciation;
+            if (method == DepreciationMethod.PRO_RATA) {
+                // Your original PRO_RATA logic
+                double annualDepreciation = currentValue * (ratePercent / 100);
+                double periodDepreciation = annualDepreciation * daysInPeriod / daysInYear;
+                currentValue -= periodDepreciation;
+            } else if (method == DepreciationMethod.SLM) {
+                // SLM: (Purchase Price * Rate * Days Held) / (100 * Days in Year)
+                double periodDepreciation = purchasePrice * (ratePercent / 100) * daysInPeriod / daysInYear;
+                currentValue -= periodDepreciation;
+            } else if (method == DepreciationMethod.WDV) {
+                // WDV: (Current Value * Rate * Days Held) / (100 * Days in Year)
+                double periodDepreciation = currentValue * (ratePercent / 100) * daysInPeriod / daysInYear;
+                currentValue -= periodDepreciation;
+            } else {
+                // Default: skip or treat as SLM
+                double periodDepreciation = purchasePrice * (ratePercent / 100) * daysInPeriod / daysInYear;
+                currentValue -= periodDepreciation;
+            }
+
             currentDate = periodEnd.plusDays(1);
             if (currentDate.isAfter(asOfDate)) {
                 break;
