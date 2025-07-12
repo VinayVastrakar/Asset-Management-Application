@@ -217,6 +217,7 @@ public class PurchaseHistoryService {
 
         double totalPurchasePrice = 0.0;
         double totalCurrentValue = 0.0;
+        double totalDepreciationValue = 0.0;
 
         try (
             Workbook workbook = new XSSFWorkbook();
@@ -299,6 +300,7 @@ public class PurchaseHistoryService {
 
                 totalPurchasePrice += ph.getPurchasePrice();
                 totalCurrentValue += currentValue;
+                totalDepreciationValue += depreciationValue;
             }
 
             // Add summary row
@@ -310,6 +312,9 @@ public class PurchaseHistoryService {
             Cell totalCurrentCell = summaryRow.createCell(9);
             totalCurrentCell.setCellValue(roundTo2Decimal(totalCurrentValue));
             totalCurrentCell.setCellStyle(summaryStyle);
+            Cell totalDepCell = summaryRow.createCell(10);
+            totalDepCell.setCellValue(roundTo2Decimal(totalDepreciationValue));
+            totalDepCell.setCellStyle(summaryStyle);
 
             for (int i = 0; i < columns.length; i++) {
                 sheet.autoSizeColumn(i);
