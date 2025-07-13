@@ -1,6 +1,7 @@
 package com.example.Assets.Management.App.dto.requestDto;
 
-import java.time.LocalDate;
+import com.example.Assets.Management.App.Enums.AssetStatus;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 
@@ -10,5 +11,8 @@ public class AssetRequestDTO {
     private String description;
     private Long categoryId;
     private Integer warrantyPeriod; // in months
-    private String status; // e.g., "active", "assigned", "retired"
+    private AssetStatus status;
+    private LocalDateTime stolenDate;
+    private String stolenReportedBy;
+    private String stolenNotes;
 }

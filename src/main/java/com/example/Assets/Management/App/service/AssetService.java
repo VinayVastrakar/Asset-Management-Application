@@ -8,6 +8,7 @@ import com.example.Assets.Management.App.repository.AssetAssignmentHistoryReposi
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.CategoryRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
+import com.example.Assets.Management.App.Enums.AssetStatus;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,13 +145,13 @@ public class AssetService {
 
     public void inactiveAsset(Long id){
         Asset asset = assetRepository.findById(id).get();
-        asset.setStatus("INACTIVE");
+        asset.setStatus(AssetStatus.INACTIVE);
         assetRepository.save(asset);
     }
 
     public void activeAsset(Long id){
         Asset asset = assetRepository.findById(id).get();
-        asset.setStatus("AVAILABLE");
+        asset.setStatus(AssetStatus.AVAILABLE);
         assetRepository.save(asset);
     }
 
@@ -207,7 +208,7 @@ public class AssetService {
         Users previousUser = asset.getAssignedToUser();
     
         asset.setAssignedToUser(null);
-        asset.setStatus("AVAILABLE");
+        asset.setStatus(AssetStatus.AVAILABLE);
         asset.setLastModifiedBy(changeBy);
         assetRepository.save(asset);
     
@@ -234,7 +235,7 @@ public class AssetService {
         Users changeBy = userRepository.findByEmail(modifiedBy).orElseThrow();
     
         asset.setAssignedToUser(newUser);
-        asset.setStatus("ASSIGNED");
+        asset.setStatus(AssetStatus.ASSIGNED);
         asset.setLastModifiedBy(changeBy);
         assetRepository.save(asset);
     
@@ -323,5 +324,23 @@ public class AssetService {
             workbook.write(out);
             return out.toByteArray();
         }
+    }
+
+    public void markAssetAsStolen(Long assetId, String reportedBy, String notes) {
+        Asset asset = assetRepository.findById(assetId)
+            .orElseThrow(() -> new RuntimeException("Asset not found"));
+        asset.setStatus(AssetStatus.STOLEN);
+        asset.setStolenDate(LocalDateTime.now());
+        asset.setStolenReportedBy(reportedBy);
+        asset.setStolenNotes(notes);
+        assetRepository.save(asset);
+    }
+
+    public void markAssetAsDisposed(Long assetId, String disposedBy, String notes) {
+        Asset asset = assetRepository.findById(assetId)
+            .orElseThrow(() -> new RuntimeException("Asset not found"));
+        asset.setStatus(AssetStatus.DISPOSED);
+        // Optionally, add disposedDate, disposedBy, disposedNotes fields if you want
+        assetRepository.save(asset);
     }
 }

@@ -9,6 +9,8 @@ import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.AssetService;
 import com.example.Assets.Management.App.dto.responseDto.ApiResponse;
+import com.example.Assets.Management.App.dto.requestDto.MarkStolenRequestDTO;
+import com.example.Assets.Management.App.dto.requestDto.MarkDisposedRequestDTO;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -109,7 +111,6 @@ public class AssetController {
             // Save the asset with or without image
             asset.setLastModifiedBy(userRepository.findByEmail(changeby).get());
             Asset savedAsset = assetRepository.save(asset);
-            System.out.println(savedAsset);
             Map<String,Object> res = Map.of("data", assetMapper.toResponseDTO(savedAsset));
             return ResponseEntity.ok(res);
         } catch (Exception e) {
@@ -160,7 +161,7 @@ public class AssetController {
         return ResponseEntity.ok(Map.of("message", "Asset inactive successfully"));
     }
 
-    @Operation(summary = "Inactive asset by asset_id")
+    @Operation(summary = "active asset by asset_id")
     @PutMapping("/active/{id}")
     public ResponseEntity<?> activeAsset(@PathVariable Long id) {
         assetService.activeAsset(id);
@@ -224,6 +225,28 @@ public class AssetController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{id}/mark-stolen")
+    @Operation(summary = "Mark asset as stolen")
+    public ResponseEntity<?> markAssetAsStolen(
+            @PathVariable Long id,
+            @RequestBody MarkStolenRequestDTO request,
+            Authentication authentication) {
+        String reportedBy = authentication.getName();
+        assetService.markAssetAsStolen(id, reportedBy, request.getNotes());
+        return ResponseEntity.ok(Map.of("message", "Asset marked as stolen"));
+    }
+
+    @PutMapping("/{id}/mark-disposed")
+    @Operation(summary = "Mark asset as disposed")
+    public ResponseEntity<?> markAssetAsDisposed(
+            @PathVariable Long id,
+            @RequestBody MarkDisposedRequestDTO request,
+            Authentication authentication) {
+        String disposedBy = authentication.getName();
+        assetService.markAssetAsDisposed(id, disposedBy, request.getNotes());
+        return ResponseEntity.ok(Map.of("message", "Asset marked as disposed"));
+    }
+
     @GetMapping("/assignment-history/export")
     @Operation(summary = "Export Asset Assignment History as Excel")
     public ResponseEntity<ByteArrayResource> exportAssetAssignmentHistoryToExcel(
@@ -238,4 +261,7 @@ public class AssetController {
                 .contentLength(resource.contentLength())
                 .body(resource);
     }
+
+
+    
 }

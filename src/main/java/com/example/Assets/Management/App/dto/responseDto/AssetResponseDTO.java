@@ -1,6 +1,7 @@
 package com.example.Assets.Management.App.dto.responseDto;
 
-import java.time.LocalDate;
+import com.example.Assets.Management.App.Enums.AssetStatus;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,12 +18,13 @@ public class AssetResponseDTO {
     private String description;
     private Long categoryId;
     private String categoryName;
-    private LocalDate purchaseDate;
-    private LocalDate expiryDate;
     private String imageUrl;
     private String notify;
     private Integer warrantyPeriod; // in months
-    private String status;
+    private AssetStatus status;
+    private LocalDateTime stolenDate;
+    private String stolenReportedBy;
+    private String stolenNotes;
     private String assignedToUserName;
 }
 

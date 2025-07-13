@@ -46,7 +46,7 @@ public class CategoryController {
     @PostMapping
     @Operation(summary = "Create Categories")
     public ResponseEntity<?> createCategory(@RequestBody CategoryRequestDTO category) {
-        logger.info("Creating category: {}", category.getName());
+        // logger.info("Creating category: {}", category.getName());
         try {
             Map<String,Object> res = new HashMap<>();
             res.put("data", categoryService.createCategory(category));

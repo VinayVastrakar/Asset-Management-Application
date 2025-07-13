@@ -1,11 +1,13 @@
 // src/main/java/com/example/assetmanagement/model/Asset.java
 package com.example.Assets.Management.App.model;
 
+import com.example.Assets.Management.App.Enums.AssetStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
@@ -26,7 +28,13 @@ public class Asset {
     String imageUrl;
     String imagePublicId;
     Integer warrantyPeriod; // in months
-    String status; // e.g., "   AVAILABLE", "ASSIGNED", "INACTIVE"
+
+    @Enumerated(EnumType.STRING)
+    private AssetStatus status;
+
+    private LocalDateTime stolenDate;
+    private String stolenReportedBy;
+    private String stolenNotes;
 
     @ManyToOne
     Users assignedToUser;

@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.example.Assets.Management.App.Enums.AssetStatus;
 
 @Service
 public class PurchaseHistoryService {
@@ -48,14 +49,6 @@ public class PurchaseHistoryService {
         this.cloudinary = cloudinary;
         this.depreciationService = depreciationService;
     }
-
-    // public Page<PurchaseHistoryResponseDTO> getAll(int page, int size, String[] sort) {
-    //     Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-    //     Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-        
-    //     return purchaseHistoryRepository.findAll(pageable)
-    //             .map(purchaseHistoryMapper::toResponseDTO);
-    // }
 
     public PurchaseHistoryPageResponse getAllWithTotalValue(int page, int size, String[] sort) {
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -81,20 +74,8 @@ public class PurchaseHistoryService {
                 .build();
     }
 
-    // public Page<PurchaseHistoryResponseDTO> getByAssetId(Long assetId, int page, int size, String[] sort) {
-    //     assetRepository.findById(assetId)
-    //             .orElseThrow(() -> new EntityNotFoundException("Asset not found with ID: " + assetId));
-
-    //     Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-    //     Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-        
-        
-    //     return purchaseHistoryRepository.findByAssetId(assetId, pageable)
-    //             .map(purchaseHistoryMapper::toResponseDTO);
-    // }
-
     public PurchaseHistoryPageResponse getByAssetIdWithTotalValue(Long assetId, int page, int size, String[] sort) {
-        assetRepository.findById(assetId)
+        Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new EntityNotFoundException("Asset not found with ID: " + assetId));
 
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -279,16 +260,21 @@ public class PurchaseHistoryService {
                 // Calculate current value and depreciation value
                 double currentValue = 0.0;
                 double depreciationValue = 0.0;
-                try {
-                    currentValue = depreciationService.getCurrentValue(
-                        ph.getPurchasePrice(),
-                        ph.getPurchaseDate(),
-                        asset.getCategory().getId(),
-                        java.time.LocalDate.now()
-                    );
-                    depreciationValue = ph.getPurchasePrice() - currentValue;
-                } catch (Exception e) {
-                    // Optionally log: logger.warn("Depreciation calculation failed for assetId: " + asset.getId(), e);
+                if (asset.getStatus() == AssetStatus.STOLEN || asset.getStatus() == AssetStatus.DISPOSED) {
+                    currentValue = 0.0;
+                    depreciationValue = ph.getPurchasePrice();
+                } else {
+                    try {
+                        currentValue = depreciationService.getCurrentValue(
+                            ph.getPurchasePrice(),
+                            ph.getPurchaseDate(),
+                            asset.getCategory().getId(),
+                            java.time.LocalDate.now()
+                        );
+                        depreciationValue = ph.getPurchasePrice() - currentValue;
+                    } catch (Exception e) {
+                        // Optionally log: logger.warn("Depreciation calculation failed for assetId: " + asset.getId(), e);
+                    }
                 }
                 Cell currentValueCell = row.createCell(9);
                 currentValueCell.setCellValue(roundTo2Decimal(currentValue));

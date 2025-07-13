@@ -8,6 +8,8 @@ import com.example.Assets.Management.App.model.PurchaseHistory;
 import com.example.Assets.Management.App.repository.DepreciationRateRepository;
 import com.example.Assets.Management.App.service.DepreciationService;
 import com.example.Assets.Management.App.service.DepreciationRateService;
+import com.example.Assets.Management.App.model.Asset;
+import com.example.Assets.Management.App.Enums.AssetStatus;
 
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,24 +88,45 @@ public class PurchaseHistoryMapper {
         if (entity == null) return null;
         double currentValue = 0;
         double totalDepreciation = 0;
-        try {
-            DepreciationRateResponseDTO depreciationRate = depreciationRateService.getByCategoryIdAndFinancialYear(entity.getAsset().getCategory().getId(), depreciationService.getFinancialYear(entity.getPurchaseDate()));
-            currentValue = depreciationService.getCurrentValue(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now());
-            totalDepreciation = depreciationService.calculateDepreciation(entity.getPurchasePrice(), entity.getPurchaseDate(), entity.getAsset().getCategory().getId(), LocalDate.now());
-        } catch (Exception e) {
+        Asset asset = entity.getAsset();
+
+        // Check for stolen/disposed status
+        if (asset.getStatus() == AssetStatus.STOLEN || asset.getStatus() == AssetStatus.DISPOSED) {
             currentValue = 0;
-            totalDepreciation = 0;
-            e.printStackTrace();
+            totalDepreciation = entity.getPurchasePrice();
+        } else {
+            try {
+                DepreciationRateResponseDTO depreciationRate = depreciationRateService.getByCategoryIdAndFinancialYear(
+                    asset.getCategory().getId(),
+                    depreciationService.getFinancialYear(entity.getPurchaseDate())
+                );
+                currentValue = depreciationService.getCurrentValue(
+                    entity.getPurchasePrice(),
+                    entity.getPurchaseDate(),
+                    asset.getCategory().getId(),
+                    LocalDate.now()
+                );
+                totalDepreciation = depreciationService.calculateDepreciation(
+                    entity.getPurchasePrice(),
+                    entity.getPurchaseDate(),
+                    asset.getCategory().getId(),
+                    LocalDate.now()
+                );
+            } catch (Exception e) {
+                currentValue = 0;
+                totalDepreciation = 0;
+                e.printStackTrace();
+            }
         }
-        
+
         return PurchaseHistoryResponseDTO.builder()
                 .id(entity.getId())
-                .assetId(entity.getAsset().getId())
-                .assetName(entity.getAsset().getName())
+                .assetId(asset.getId())
+                .assetName(asset.getName())
                 .purchaseDate(entity.getPurchaseDate())
                 .invoiceNumber(entity.getInvoiceNumber())
-                .amount(entity.getPurchasePrice()) 
-                .description(entity.getDescription())   // Note: mapping 'purchasePrice' to 'amount'
+                .amount(entity.getPurchasePrice())
+                .description(entity.getDescription())
                 .warrantyPeriod(entity.getWarrantyPeriod())
                 .qty(entity.getQty())
                 .billUrl(entity.getBillUrl())
@@ -111,7 +134,7 @@ public class PurchaseHistoryMapper {
                 .totalDepreciation(roundToTwo(totalDepreciation))
                 .expiryDate(entity.getExpiryDate())
                 .notify(entity.getNotify())
-                .vendor(entity.getVendorName())         // Note: mapping 'vendorName' to 'vendor'
+                .vendor(entity.getVendorName())
                 .build();
     }
     public double roundToTwo(double value) {

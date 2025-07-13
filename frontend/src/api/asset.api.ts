@@ -95,6 +95,15 @@ export const assetApi = {
       responseType: 'blob',
     });
     return response.data;
-  }
+  },
 
+  markAssetAsStolen: async (id: number, notes: string) => {
+    const response = await api.put(`/api/asset/${id}/mark-stolen`, { notes });
+    return response.data;
+  },
+
+  markAssetAsDisposed: async (id: number, notes: string) => {
+    const response = await api.put(`/api/asset/${id}/mark-disposed`, { notes });
+    return response.data;
+  }
 }; 
