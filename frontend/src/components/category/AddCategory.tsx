@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../redux/store';
-import { addCategory } from '../../redux/slices/categorySlice';
+import { addCategory, clearError } from '../../redux/slices/categorySlice';
 
 const AddCategory: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -18,6 +18,16 @@ const AddCategory: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear Redux error when user starts typing
+    if (error) {
+      dispatch(clearError());
+    }
+    
+    // Clear form validation errors
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const validateForm = () => {
@@ -36,7 +46,8 @@ const AddCategory: React.FC = () => {
     try {
       await dispatch(addCategory(formData)).unwrap();
       navigate('/categories/manage');
-    } catch (err) {
+    } catch (err: any) {
+      // Error is already handled by Redux slice
       console.error('Failed to add category:', err);
     }
   };

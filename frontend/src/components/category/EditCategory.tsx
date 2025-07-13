@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RootState, AppDispatch } from '../../redux/store';
-import { fetchCategories, updateCategory } from '../../redux/slices/categorySlice';
+import { fetchCategories, updateCategory, clearError } from '../../redux/slices/categorySlice';
 
 const EditCategory: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -36,6 +36,16 @@ const EditCategory: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear Redux error when user starts typing
+    if (error) {
+      dispatch(clearError());
+    }
+    
+    // Clear form validation errors
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const validateForm = () => {
@@ -54,7 +64,8 @@ const EditCategory: React.FC = () => {
     try {
       await dispatch(updateCategory({ id: numericId, category: formData })).unwrap();
       navigate('/categories/manage');
-    } catch (err) {
+    } catch (err: any) {
+      // Error is already handled by Redux slice
       console.error('Failed to update category:', err);
     }
   };

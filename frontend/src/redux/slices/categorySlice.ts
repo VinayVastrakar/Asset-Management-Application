@@ -21,17 +21,33 @@ export const fetchCategories = createAsyncThunk(
 
 export const addCategory = createAsyncThunk(
   'categories/addCategory',
-  async (category: Omit<Category, 'id'>) => {
-    const response = await categoryApi.addCategory(category);
-    return response.data;
+  async (category: Omit<Category, 'id'>, { rejectWithValue }) => {
+    try {
+      const response = await categoryApi.addCategory(category);
+      return response.data;
+    } catch (error: any) {
+      // Handle the structured error response from backend
+      if (error.response?.data?.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      return rejectWithValue(error.message || 'Failed to add category');
+    }
   }
 );
 
 export const updateCategory = createAsyncThunk(
   'categories/updateCategory',
-  async ({ id, category }: { id: number; category: Omit<Category, 'id'> }) => {
-    const response = await categoryApi.updateCategory(id, category);
-    return response.data;
+  async ({ id, category }: { id: number; category: Omit<Category, 'id'> }, { rejectWithValue }) => {
+    try {
+      const response = await categoryApi.updateCategory(id, category);
+      return response.data;
+    } catch (error: any) {
+      // Handle the structured error response from backend
+      if (error.response?.data?.message) {
+        return rejectWithValue(error.response.data.message);
+      }
+      return rejectWithValue(error.message || 'Failed to update category');
+    }
   }
 );
 
@@ -75,7 +91,7 @@ const categorySlice = createSlice({
       })
       .addCase(addCategory.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to add category';
+        state.error = action.payload as string || action.error.message || 'Failed to add category';
       })
       // Update Category
       .addCase(updateCategory.pending, (state) => {
@@ -87,7 +103,7 @@ const categorySlice = createSlice({
       })
       .addCase(updateCategory.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to update category';
+        state.error = action.payload as string || action.error.message || 'Failed to update category';
       })
       // Delete Category
       .addCase(deleteCategory.pending, (state) => {
