@@ -23,6 +23,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -248,4 +252,76 @@ public class AssetService {
     }
     
 
+    public byte[] exportAssetAssignmentHistoryToExcel(Long assetId, Long categoryId) throws IOException {
+        List<AssetAssignmentHistory> histories;
+        
+        if (assetId != null && categoryId != null) {
+            histories = assignmentHistoryRepository.findByAssetIdAndCategoryId(assetId, categoryId);
+        } else if (assetId != null) {
+            histories = assignmentHistoryRepository.findByAssetId(assetId);
+        } else if (categoryId != null) {
+            histories = assignmentHistoryRepository.findByCategoryId(categoryId);
+        } else {
+            histories = assignmentHistoryRepository.findAll();
+        }
+
+        String[] columns = {
+            "S.No", "Asset Name", "Category", "Assigned User", "Status", "Assignment Date"
+        };
+
+        try (
+            Workbook workbook = new XSSFWorkbook();
+            ByteArrayOutputStream out = new ByteArrayOutputStream()
+        ) {
+            Sheet sheet = workbook.createSheet("Asset Assignment History");
+
+            // Header style
+            CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+
+            // Date style
+            CellStyle dateStyle = workbook.createCellStyle();
+            DataFormat format = workbook.createDataFormat();
+            dateStyle.setDataFormat(format.getFormat("dd/mm/yyyy hh:mm"));
+
+            // Header row
+            Row header = sheet.createRow(0);
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = header.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowIdx = 1;
+            int serialNumber = 1;
+            for (AssetAssignmentHistory history : histories) {
+                Row row = sheet.createRow(rowIdx++);
+                Asset asset = history.getAsset();
+                String categoryName = asset.getCategory() != null ? asset.getCategory().getName() : "";
+                String assignedUserName = history.getAssignedUser() != null ? history.getAssignedUser().getName() : "";
+
+                row.createCell(0).setCellValue(serialNumber++);
+                row.createCell(1).setCellValue(asset.getName());
+                row.createCell(2).setCellValue(categoryName);
+                row.createCell(3).setCellValue(assignedUserName);
+                row.createCell(4).setCellValue(history.getStatus());
+
+                Cell dateCell = row.createCell(5);
+                dateCell.setCellValue(history.getAssignmentDate());
+                dateCell.setCellStyle(dateStyle);
+            }
+
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
 }

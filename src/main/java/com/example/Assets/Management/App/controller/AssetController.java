@@ -5,7 +5,6 @@ import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.dto.responseDto.PaginatedResponse;
 import com.example.Assets.Management.App.model.Asset;
-import com.example.Assets.Management.App.model.Users;
 import com.example.Assets.Management.App.repository.AssetRepository;
 import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.AssetService;
@@ -15,15 +14,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
-import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/asset")
@@ -221,5 +222,20 @@ public class AssetController {
         String username = authentication.getName();
         AssetResponseDTO response = assetService.returnAsset(id, username);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/assignment-history/export")
+    @Operation(summary = "Export Asset Assignment History as Excel")
+    public ResponseEntity<ByteArrayResource> exportAssetAssignmentHistoryToExcel(
+            @RequestParam(required = false) Long assetId,
+            @RequestParam(required = false) Long categoryId
+    ) throws IOException {
+        byte[] excelData = assetService.exportAssetAssignmentHistoryToExcel(assetId, categoryId);
+        ByteArrayResource resource = new ByteArrayResource(excelData);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=asset_assignment_history.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentLength(resource.contentLength())
+                .body(resource);
     }
 }

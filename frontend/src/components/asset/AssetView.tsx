@@ -7,6 +7,7 @@ import axios from 'axios';
 import api from 'api/config';
 import { assetApi } from 'api/asset.api';
 import userApi from 'api/user.api';
+import { saveAs } from 'file-saver';
 
 const AssetView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,7 @@ const AssetView: React.FC = () => {
   const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [assigning, setAssigning] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -32,6 +34,22 @@ const AssetView: React.FC = () => {
       setUsers(res.data.users);
     } catch (err) {
       console.error('Failed to load users', err);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!asset?.id) return;
+    
+    setExportLoading(true);
+    try {
+      const blob = await assetApi.exportAssetAssignmentHistory(asset.id, undefined);
+      const fileName = `asset_assignment_history_${asset.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      saveAs(blob, fileName);
+    } catch (err: any) {
+      console.error('Export failed:', err);
+      alert('Failed to export asset assignment history. Please try again.');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -102,6 +120,31 @@ const AssetView: React.FC = () => {
           <h1 className="text-3xl font-semibold text-gray-800">{asset.name}</h1>
           <div className="space-x-2 flex items-center">
             {renderStatusBadge(asset.status)}
+
+            {/* Export Assignment History Button */}
+            <button
+              onClick={handleExport}
+              disabled={exportLoading}
+              title="Export assignment history for this asset"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 flex items-center space-x-2"
+            >
+              {exportLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Export History</span>
+                </>
+              )}
+            </button>
 
             {asset.status === 'AVAILABLE' && (
               <button

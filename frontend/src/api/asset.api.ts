@@ -83,6 +83,18 @@ export const assetApi = {
   returnAsset: async (id : number) =>{
     const response = await api.put(`api/asset/${id}/return `);
     return response.data;
+  },
+
+  exportAssetAssignmentHistory: async (assetId?: number, categoryId?: number) => {
+    const params: any = {};
+    if (assetId) params.assetId = assetId;
+    if (categoryId) params.categoryId = categoryId;
+    
+    const response = await api.get('/api/asset/assignment-history/export', {
+      params,
+      responseType: 'blob',
+    });
+    return response.data;
   }
 
 }; 
