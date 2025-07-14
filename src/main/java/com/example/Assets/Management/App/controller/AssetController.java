@@ -1,5 +1,6 @@
 package com.example.Assets.Management.App.controller;
 
+import com.example.Assets.Management.App.Enums.AssetStatus;
 import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
@@ -55,7 +56,7 @@ public class AssetController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int limit,
         @RequestParam(required = false) Long categoryId,
-        @RequestParam(required = false) String status
+        @RequestParam(required = false) AssetStatus status
     ) {
         PaginatedResponse<AssetResponseDTO> paginatedAssets = assetService.getAllAssets(page, limit, categoryId, status);
 

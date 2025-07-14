@@ -108,6 +108,10 @@ public class PurchaseHistoryService {
         ph.setAsset(asset);
         ph.setLastChangeBy(u);
         if (file != null && !file.isEmpty()) {
+            // Only accept PDF
+            if (!"application/pdf".equals(file.getContentType())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF files are allowed");
+            }
             try {
                 Map uploadResult = cloudinary.uploader().upload(
                     file.getBytes(),
@@ -260,9 +264,12 @@ public class PurchaseHistoryService {
                 // Calculate current value and depreciation value
                 double currentValue = 0.0;
                 double depreciationValue = 0.0;
-                if (asset.getStatus() == AssetStatus.STOLEN || asset.getStatus() == AssetStatus.DISPOSED) {
-                    currentValue = 0.0;
-                    depreciationValue = ph.getPurchasePrice();
+                if (asset.getStatus() == AssetStatus.STOLEN && ph.getStolenValue() != null) {
+                    currentValue = 0;
+                    depreciationValue = ph.getStolenValue();
+                } else if (asset.getStatus() == AssetStatus.DISPOSED && ph.getDisposedValue() != null) {
+                    currentValue = 0;
+                    depreciationValue = ph.getDisposedValue();
                 } else {
                     try {
                         currentValue = depreciationService.getCurrentValue(

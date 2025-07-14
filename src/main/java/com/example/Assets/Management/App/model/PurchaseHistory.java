@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -54,4 +55,7 @@ public class    PurchaseHistory {
 
     String billUrl;
     String billPublicId;
+
+    private Double stolenValue;
+    private Double disposedValue;
 }

@@ -91,9 +91,12 @@ public class PurchaseHistoryMapper {
         Asset asset = entity.getAsset();
 
         // Check for stolen/disposed status
-        if (asset.getStatus() == AssetStatus.STOLEN || asset.getStatus() == AssetStatus.DISPOSED) {
+        if (asset.getStatus() == AssetStatus.STOLEN && entity.getStolenValue() != null) {
             currentValue = 0;
-            totalDepreciation = entity.getPurchasePrice();
+            totalDepreciation = entity.getPurchasePrice() - entity.getStolenValue();
+        } else if (asset.getStatus() == AssetStatus.DISPOSED && entity.getDisposedValue() != null) {
+            currentValue = 0;
+            totalDepreciation = entity.getPurchasePrice() - entity.getDisposedValue();
         } else {
             try {
                 DepreciationRateResponseDTO depreciationRate = depreciationRateService.getByCategoryIdAndFinancialYear(

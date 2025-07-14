@@ -35,6 +35,8 @@ public class Asset {
     private LocalDateTime stolenDate;
     private String stolenReportedBy;
     private String stolenNotes;
+    private LocalDateTime disposedDate;
+    private String disposedNotes;
 
     @ManyToOne
     Users assignedToUser;

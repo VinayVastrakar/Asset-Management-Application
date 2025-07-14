@@ -30,8 +30,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.time.LocalDate;
+import com.example.Assets.Management.App.model.PurchaseHistory;
+import com.example.Assets.Management.App.repository.PurchaseHistoryRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class AssetService {
     
     @Autowired
@@ -57,7 +62,13 @@ public class AssetService {
     @Autowired
     private AssetAssignmentHistoryRepository assignmentHistoryRepository;
 
-    public PaginatedResponse<AssetResponseDTO> getAllAssets(int page, int size, Long categoryId, String status) {
+    @Autowired
+    private DepreciationService depreciationService;
+
+    @Autowired
+    private PurchaseHistoryRepository purchaseHistoryRepository;
+
+    public PaginatedResponse<AssetResponseDTO> getAllAssets(int page, int size, Long categoryId, AssetStatus status) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Asset> assets;
         Category category = null;
@@ -326,21 +337,55 @@ public class AssetService {
         }
     }
 
+    @Transactional
     public void markAssetAsStolen(Long assetId, String reportedBy, String notes) {
         Asset asset = assetRepository.findById(assetId)
             .orElseThrow(() -> new RuntimeException("Asset not found"));
-        asset.setStatus(AssetStatus.STOLEN);
+        List<PurchaseHistory> histories = purchaseHistoryRepository.findByAssetId(assetId);
+
+        // Null safety: If there are no purchase histories, do nothing for purchase values
+        if (histories != null && !histories.isEmpty()) {
+            for (PurchaseHistory ph : histories) {
+                double currentValue = depreciationService.getCurrentValue(
+                    ph.getPurchasePrice(),
+                    ph.getPurchaseDate(),
+                    asset.getCategory().getId(),
+                    LocalDate.now()
+                );
+                ph.setStolenValue(currentValue);
+                purchaseHistoryRepository.save(ph);
+            }
+        }
+
         asset.setStolenDate(LocalDateTime.now());
+        asset.setStatus(AssetStatus.STOLEN);
         asset.setStolenReportedBy(reportedBy);
         asset.setStolenNotes(notes);
         assetRepository.save(asset);
     }
 
+    @Transactional
     public void markAssetAsDisposed(Long assetId, String disposedBy, String notes) {
         Asset asset = assetRepository.findById(assetId)
             .orElseThrow(() -> new RuntimeException("Asset not found"));
+        List<PurchaseHistory> histories = purchaseHistoryRepository.findByAssetId(assetId);
+
+        // Null safety: If there are no purchase histories, do nothing for purchase values
+        if (histories != null && !histories.isEmpty()) {
+            for (PurchaseHistory ph : histories) {
+                double currentValue = depreciationService.getCurrentValue(
+                    ph.getPurchasePrice(),
+                    ph.getPurchaseDate(),
+                    asset.getCategory().getId(),
+                    LocalDate.now()
+                );
+                ph.setDisposedValue(currentValue);
+                purchaseHistoryRepository.save(ph);
+            }
+        }
+        asset.setDisposedDate(LocalDateTime.now());
+        asset.setDisposedNotes(notes);
         asset.setStatus(AssetStatus.DISPOSED);
-        // Optionally, add disposedDate, disposedBy, disposedNotes fields if you want
         assetRepository.save(asset);
     }
 }

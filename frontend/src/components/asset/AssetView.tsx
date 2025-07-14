@@ -3,8 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
 import { fetchAssetById } from '../../redux/slices/assetSlice';
-import axios from 'axios';
-import api from 'api/config';
 import { assetApi } from 'api/asset.api';
 import userApi from 'api/user.api';
 import { saveAs } from 'file-saver';
@@ -20,6 +18,12 @@ const AssetView: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [stolenNotes, setStolenNotes] = useState('');
+  const [disposedNotes, setDisposedNotes] = useState('');
+  const [stolenLoading, setStolenLoading] = useState(false);
+  const [disposedLoading, setDisposedLoading] = useState(false);
+  const [showStolenModal, setShowStolenModal] = useState(false);
+  const [showDisposedModal, setShowDisposedModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -89,6 +93,36 @@ const AssetView: React.FC = () => {
       console.error('Failed to assign user', err);
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleMarkStolen = async () => {
+    if (!asset?.id) return;
+    setStolenLoading(true);
+    try {
+      await assetApi.markAssetAsStolen(asset.id, stolenNotes);
+      alert('Asset marked as stolen!');
+      setShowStolenModal(false);
+      navigate('/assets');
+    } catch (err) {
+      alert('Failed to mark as stolen');
+    } finally {
+      setStolenLoading(false);
+    }
+  };
+
+  const handleMarkDisposed = async () => {
+    if (!asset?.id) return;
+    setDisposedLoading(true);
+    try {
+      await assetApi.markAssetAsDisposed(asset.id, disposedNotes);
+      alert('Asset marked as disposed!');
+      setShowDisposedModal(false);
+      navigate('/assets');
+    } catch (err) {
+      alert('Failed to mark as disposed');
+    } finally {
+      setDisposedLoading(false);
     }
   };
 
@@ -174,6 +208,23 @@ const AssetView: React.FC = () => {
               </button>
             )}
 
+            {asset.status !== 'STOLEN' && asset.status !== 'DISPOSED' && (
+              <button
+                onClick={() => setShowStolenModal(true)}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              >
+                Mark as Stolen
+              </button>
+            )}
+            {asset.status !== 'DISPOSED' && asset.status !== 'STOLEN' && (
+              <button
+                onClick={() => setShowDisposedModal(true)}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+              >
+                Mark as Disposed
+              </button>
+            )}
+
             <button
               onClick={() => navigate(`/assets/edit/${asset.id}`)}
               className="px-4 py-2 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200 transition"
@@ -248,6 +299,66 @@ const AssetView: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
                 {assigning ? 'Assigning...' : 'Assign'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stolen Modal */}
+      {showStolenModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Mark as Stolen</h2>
+            <textarea
+              value={stolenNotes}
+              onChange={e => setStolenNotes(e.target.value)}
+              className="w-full border border-gray-300 rounded p-2 mb-4"
+              placeholder="Enter notes (optional)"
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowStolenModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkStolen}
+                disabled={stolenLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                {stolenLoading ? 'Marking...' : 'Mark as Stolen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Disposed Modal */}
+      {showDisposedModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Mark as Disposed</h2>
+            <textarea
+              value={disposedNotes}
+              onChange={e => setDisposedNotes(e.target.value)}
+              className="w-full border border-gray-300 rounded p-2 mb-4"
+              placeholder="Enter notes (optional)"
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowDisposedModal(false)}
+                className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkDisposed}
+                disabled={disposedLoading}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                {disposedLoading ? 'Marking...' : 'Mark as Disposed'}
               </button>
             </div>
           </div>

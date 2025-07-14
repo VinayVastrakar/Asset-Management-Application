@@ -102,6 +102,8 @@ const AssetList: React.FC = () => {
       AVAILABLE: 'bg-green-100 text-green-800',
       ASSIGNED: 'bg-blue-100 text-blue-800',
       INACTIVE: 'bg-red-100 text-red-800',
+      STOLEN: 'bg-red-700 text-white', // Add a strong red for stolen
+      DISPOSED: 'bg-gray-500 text-white', // Add a gray for disposed
     };
     return (
       <span
@@ -184,6 +186,8 @@ const AssetList: React.FC = () => {
           <option value="AVAILABLE">Available</option>
           <option value="ASSIGNED">Assigned</option>
           <option value="INACTIVE">Inactive</option>
+          <option value="STOLEN">Stolen</option>
+          <option value="DISPOSED">Disposed</option>
         </select>
 
         <button onClick={() => fetchData()} className="bg-blue-500 text-white px-4 py-2 rounded">
