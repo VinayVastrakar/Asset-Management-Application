@@ -25,6 +25,7 @@ public class AssetResponseDTO {
     private LocalDateTime stolenDate;
     private String stolenReportedBy;
     private String stolenNotes;
+    private String disposedNotes;
     private String assignedToUserName;
 }
 

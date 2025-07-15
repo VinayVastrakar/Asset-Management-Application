@@ -43,8 +43,7 @@ public class AssetService {
     private AssetRepository assetRepository;
     @Autowired
     private UserRepository userRepository;
-  
-
+    
     @Autowired
     private CategoryRepository categoryRepository;
     @Autowired
@@ -98,7 +97,6 @@ public class AssetService {
     }
 
     public PaginatedResponse<AssetResponseDTO> getAssetsNotInPurchaseHistory(int page, int size) {
-        // Validate pagination parameters
         if (page < 0) {
             throw new IllegalArgumentException("Page index must not be less than zero");
         }
@@ -106,18 +104,12 @@ public class AssetService {
             throw new IllegalArgumentException("Page size must not be less than one");
         }
     
-        // Create pageable request
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
-        
-        // Get paginated results
         Page<Asset> assets = assetRepository.findAssetsNotInPurchaseHistory(pageable);
-        
-        // Convert to DTOs
         List<AssetResponseDTO> assetResponseDTOList = assets.stream()
                 .map(assetMapper::toResponseDTO)
                 .toList();
     
-        // Return paginated response
         return new PaginatedResponse<>(
             assetResponseDTOList,
             assets.getTotalElements(),
@@ -143,16 +135,53 @@ public class AssetService {
         return assetMapper.toResponseDTO(savedAsset);
     }
 
-    public Asset updateAsset(Long id, AssetRequestDTO assetRequestDTO) {
+    public AssetResponseDTO createAssetWithImage(AssetRequestDTO assetRequestDTO, MultipartFile file, String modifiedBy) {
+        Asset asset = assetMapper.toEntity(assetRequestDTO);
+        if (file != null && !file.isEmpty()) {
+            Map<String, String> uploadResult = uploadAssetImage(file, asset);
+            asset.setImageUrl(uploadResult.get("imageUrl"));
+            asset.setImagePublicId(uploadResult.get("publicId"));
+        }
+        asset.setLastModifiedBy(userRepository.findByEmail(modifiedBy).get());
+        Asset savedAsset = assetRepository.save(asset);
+        return assetMapper.toResponseDTO(savedAsset);
+    }
+
+    public AssetResponseDTO updateAsset(Long id, AssetRequestDTO assetRequestDTO) {
         Asset asset = assetRepository.findById(id).get();
         asset.setCategory(categoryRepository.findById(assetRequestDTO.getCategoryId()).get());
         asset.setDescription(assetRequestDTO.getDescription());
         asset.setName(assetRequestDTO.getName());
         asset.setWarrantyPeriod(assetRequestDTO.getWarrantyPeriod());
         Asset updatedAsset = assetRepository.save(asset);
-        return updatedAsset;
+        return assetMapper.toResponseDTO(updatedAsset);
     }
 
+    public AssetResponseDTO updateAssetWithImage(Long id, AssetRequestDTO assetRequestDTO, MultipartFile file, String modifiedBy) {
+        Asset asset = assetRepository.findById(id).orElseThrow(() -> new RuntimeException("Asset not found"));
+        asset.setCategory(categoryRepository.findById(assetRequestDTO.getCategoryId()).get());
+        asset.setDescription(assetRequestDTO.getDescription());
+        asset.setName(assetRequestDTO.getName());
+        asset.setWarrantyPeriod(assetRequestDTO.getWarrantyPeriod());
+        if (file != null && !file.isEmpty()) {
+            Map<String, String> uploadResult = uploadAssetImage(file, asset);
+            asset.setImageUrl(uploadResult.get("imageUrl"));
+            asset.setImagePublicId(uploadResult.get("publicId"));
+        }
+        asset.setLastModifiedBy(userRepository.findByEmail(modifiedBy).get());
+        Asset updatedAsset = assetRepository.save(asset);
+        return assetMapper.toResponseDTO(updatedAsset);
+    }
+
+    public Map<String, String> updateAssetImage(Long id, MultipartFile file) {
+        Asset asset = assetRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Asset not found"));
+        Map<String, String> uploadResult = uploadAssetImage(file, asset);
+        asset.setImageUrl(uploadResult.get("imageUrl"));
+        asset.setImagePublicId(uploadResult.get("publicId"));
+        assetRepository.save(asset);
+        return uploadResult;
+    }
 
     public void inactiveAsset(Long id){
         Asset asset = assetRepository.findById(id).get();
@@ -189,24 +218,18 @@ public class AssetService {
 
     public Map<String, String> uploadAssetImage(MultipartFile file, Asset asset) {
         try {
-            // If the asset has an existing image, overwrite it
             Map<String, Object> uploadOptions = new HashMap<>();
             if (asset.getImagePublicId() != null) {
                 uploadOptions.put("public_id", asset.getImagePublicId());
                 uploadOptions.put("overwrite", true);
-                uploadOptions.put("invalidate", true); // optional: invalidate CDN cache
+                uploadOptions.put("invalidate", true);
             }
-
-            // Upload image (will overwrite if public_id exists)
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), uploadOptions);
-
             String imageUrl = uploadResult.get("secure_url").toString();
             String publicId = uploadResult.get("public_id").toString();
-
             return Map.of(
                     "imageUrl", imageUrl,
                     "publicId", publicId);
-
         } catch (Exception e) {
             throw new RuntimeException("Image upload failed", e);
         }
@@ -223,7 +246,6 @@ public class AssetService {
         asset.setLastModifiedBy(changeBy);
         assetRepository.save(asset);
     
-        // Save return history
         if (previousUser != null) {
             AssetAssignmentHistory history = AssetAssignmentHistory.builder()
                 .asset(asset)
@@ -250,7 +272,6 @@ public class AssetService {
         asset.setLastModifiedBy(changeBy);
         assetRepository.save(asset);
     
-        // Save assignment history
         AssetAssignmentHistory history = AssetAssignmentHistory.builder()
             .asset(asset)
             .assignedUser(newUser)
@@ -287,7 +308,6 @@ public class AssetService {
         ) {
             Sheet sheet = workbook.createSheet("Asset Assignment History");
 
-            // Header style
             CellStyle headerStyle = workbook.createCellStyle();
             headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -296,12 +316,10 @@ public class AssetService {
             headerFont.setColor(IndexedColors.WHITE.getIndex());
             headerStyle.setFont(headerFont);
 
-            // Date style
             CellStyle dateStyle = workbook.createCellStyle();
             DataFormat format = workbook.createDataFormat();
             dateStyle.setDataFormat(format.getFormat("dd/mm/yyyy hh:mm"));
 
-            // Header row
             Row header = sheet.createRow(0);
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = header.createCell(i);
@@ -341,9 +359,11 @@ public class AssetService {
     public void markAssetAsStolen(Long assetId, String reportedBy, String notes) {
         Asset asset = assetRepository.findById(assetId)
             .orElseThrow(() -> new RuntimeException("Asset not found"));
+        if (asset.getStatus() == AssetStatus.DISPOSED) {
+            throw new IllegalStateException("Cannot mark as stolen: asset is already disposed.");
+        }
         List<PurchaseHistory> histories = purchaseHistoryRepository.findByAssetId(assetId);
 
-        // Null safety: If there are no purchase histories, do nothing for purchase values
         if (histories != null && !histories.isEmpty()) {
             for (PurchaseHistory ph : histories) {
                 double currentValue = depreciationService.getCurrentValue(
@@ -368,9 +388,11 @@ public class AssetService {
     public void markAssetAsDisposed(Long assetId, String disposedBy, String notes) {
         Asset asset = assetRepository.findById(assetId)
             .orElseThrow(() -> new RuntimeException("Asset not found"));
+        if (asset.getStatus() == AssetStatus.STOLEN) {
+            throw new IllegalStateException("Cannot mark as disposed: asset is already stolen.");
+        }
         List<PurchaseHistory> histories = purchaseHistoryRepository.findByAssetId(assetId);
 
-        // Null safety: If there are no purchase histories, do nothing for purchase values
         if (histories != null && !histories.isEmpty()) {
             for (PurchaseHistory ph : histories) {
                 double currentValue = depreciationService.getCurrentValue(

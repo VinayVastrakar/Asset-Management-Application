@@ -3,33 +3,31 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { dashboardApi, DashboardStats } from "../../api/dashboard.api";
 import { Alert } from "../common/Alert";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const Dashboard: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
         setError(null);
+        setSuccess(null);
         const response = await dashboardApi.getStats();
         setStats(response.data.data);
-        toast.success('Dashboard data loaded successfully');
+        setSuccess('Dashboard data loaded successfully');
+        setTimeout(() => setSuccess(null), 2000);
       } catch (err: any) {
         const message = err.response?.data?.message || "Failed to fetch dashboard statistics";
         setError(message);
-        toast.error(message);
       } finally {
         setLoading(false);
       }
     };
-
-    // console.log(stats);
     fetchStats();
   }, []);
 
@@ -47,12 +45,16 @@ const Dashboard: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        {/* <p className="text-gray-600">Welcome, {user?.name} ({user?.role})</p> */}
       </div>
 
       {error && (
         <div className="mb-6">
           <Alert type="error" message={error} />
+        </div>
+      )}
+      {success && (
+        <div className="mb-6">
+          <Alert type="success" message={success} />
         </div>
       )}
 
@@ -128,7 +130,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop />
     </div>
   );
 };

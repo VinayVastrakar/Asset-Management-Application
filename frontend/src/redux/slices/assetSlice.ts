@@ -13,6 +13,8 @@ export interface Asset {
   assignedToUserName: string;
   status: string;
   imageUrl?: string;
+  stolenNotes?: string;
+  disposedNotes?: string;
 }
 
 interface AssetState {

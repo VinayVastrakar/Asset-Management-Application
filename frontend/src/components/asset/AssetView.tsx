@@ -265,6 +265,19 @@ const AssetView: React.FC = () => {
               <p><strong>Assigned To:</strong> {asset.assignedToUserName || 'Not Assigned'}</p>
             </div>
           </div>
+
+          {/* Status Notes Section */}
+          {(asset.stolenNotes || asset.disposedNotes) && (
+            <div className="px-6 pb-6">
+              <h2 className="text-lg font-semibold mb-2">Status Notes</h2>
+              {asset.stolenNotes && (
+                <p className="mb-1"><strong>Stolen Notes:</strong> {asset.stolenNotes}</p>
+              )}
+              {asset.disposedNotes && (
+                <p><strong>Disposed Notes:</strong> {asset.disposedNotes}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

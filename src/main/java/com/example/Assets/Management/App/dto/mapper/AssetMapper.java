@@ -30,6 +30,8 @@ public class AssetMapper {
         dto.setWarrantyPeriod(asset.getWarrantyPeriod());
         dto.setStatus(asset.getStatus());
         dto.setAssignedToUserName(asset.getAssignedToUser() != null ? asset.getAssignedToUser().getName() : null);
+        dto.setStolenNotes(asset.getStolenNotes());
+        dto.setDisposedNotes(asset.getDisposedNotes());
         return dto;
     }
 

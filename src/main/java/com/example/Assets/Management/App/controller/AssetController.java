@@ -1,13 +1,9 @@
 package com.example.Assets.Management.App.controller;
 
 import com.example.Assets.Management.App.Enums.AssetStatus;
-import com.example.Assets.Management.App.dto.mapper.AssetMapper;
 import com.example.Assets.Management.App.dto.requestDto.AssetRequestDTO;
 import com.example.Assets.Management.App.dto.responseDto.AssetResponseDTO;
 import com.example.Assets.Management.App.dto.responseDto.PaginatedResponse;
-import com.example.Assets.Management.App.model.Asset;
-import com.example.Assets.Management.App.repository.AssetRepository;
-import com.example.Assets.Management.App.repository.UserRepository;
 import com.example.Assets.Management.App.service.AssetService;
 import com.example.Assets.Management.App.dto.responseDto.ApiResponse;
 import com.example.Assets.Management.App.dto.requestDto.MarkStolenRequestDTO;
@@ -36,18 +32,12 @@ import java.io.IOException;
 public class AssetController {
 
     private final AssetService assetService;
-    private final AssetRepository assetRepository;
-    private final AssetMapper assetMapper;
     private final ObjectMapper objectMapper; 
-    private final UserRepository userRepository;
 
 
-    public AssetController(AssetService assetService,AssetRepository assetRepository,AssetMapper assetMapper,ObjectMapper objectMapper, UserRepository userRepository) {
+    public AssetController(AssetService assetService,ObjectMapper objectMapper) {
         this.assetService = assetService;
-        this.assetRepository = assetRepository;
-        this.assetMapper = assetMapper;
         this.objectMapper = objectMapper;
-        this.userRepository = userRepository;
     }
 
     @Operation(summary = "Get all assets")
@@ -92,67 +82,37 @@ public class AssetController {
     @Operation(summary = "Create new asset")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createAssetWithImage(
-            @RequestPart("asset") String assetJson,
-            @RequestPart(value = "file", required = false) MultipartFile file, Authentication authentication) {
-
-        try {
-            // Convert JSON string to DTO
-            AssetRequestDTO assetRequestDTO = objectMapper.readValue(assetJson, AssetRequestDTO.class);
-
-            // Convert DTO to entity
-            Asset asset = assetMapper.toEntity(assetRequestDTO);
-
-            // If file is provided, upload image and set image data
-            if (file != null && !file.isEmpty()) {
-                Map<String, String> uploadResult = assetService.uploadAssetImage(file, asset);
-                asset.setImageUrl(uploadResult.get("imageUrl"));
-                asset.setImagePublicId(uploadResult.get("publicId"));
-            }
-            String changeby = authentication.getName();
-            // Save the asset with or without image
-            asset.setLastModifiedBy(userRepository.findByEmail(changeby).get());
-            Asset savedAsset = assetRepository.save(asset);
-            Map<String,Object> res = Map.of("data", assetMapper.toResponseDTO(savedAsset));
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        @RequestPart("asset") String assetJson,
+        @RequestPart(value = "file", required = false) MultipartFile file, Authentication authentication) {
+    try {
+        AssetRequestDTO assetRequestDTO = objectMapper.readValue(assetJson, AssetRequestDTO.class);
+        String changeBy = authentication.getName();
+        AssetResponseDTO savedAsset = assetService.createAssetWithImage(assetRequestDTO, file, changeBy);
+        Map<String,Object> res = Map.of("data", savedAsset);
+        return ResponseEntity.ok(res);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().build();
     }
+}
 
-    @Operation(summary = "Update asset by ID (with optional image upload)")
-    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateAsset(
-            @PathVariable Long id,
-            @RequestPart("asset") String assetJson,
-            @RequestPart(value = "file", required = false) MultipartFile file,
-            Authentication authentication) {
-
-        try {
-            AssetRequestDTO assetRequestDTO = objectMapper.readValue(assetJson, AssetRequestDTO.class);
-
-            // Call your service to handle update logic
-            Asset updatedAsset = assetService.updateAsset(id, assetRequestDTO);
-
-            // Handle optional image upload
-            if (file != null && !file.isEmpty()) {
-                Map<String, String> uploadResult = assetService.uploadAssetImage(file, updatedAsset);
-                updatedAsset.setImageUrl(uploadResult.get("imageUrl"));
-                updatedAsset.setImagePublicId(uploadResult.get("publicId"));
-            }
-
-            // Update lastModifiedBy field
-            String email = authentication.getName();
-            updatedAsset.setLastModifiedBy(userRepository.findByEmail(email).get());
-
-            // Save updated asset
-            updatedAsset = assetRepository.save(updatedAsset);
-            Map<String,Object> res = Map.of("data", assetMapper.toResponseDTO(updatedAsset));
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+@Operation(summary = "Update asset by ID (with optional image upload)")
+@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<?> updateAsset(
+        @PathVariable Long id,
+        @RequestPart("asset") String assetJson,
+        @RequestPart(value = "file", required = false) MultipartFile file,
+        Authentication authentication) {
+    try {
+        AssetRequestDTO assetRequestDTO = objectMapper.readValue(assetJson, AssetRequestDTO.class);
+        String email = authentication.getName();
+        AssetResponseDTO updatedAsset = assetService.updateAssetWithImage(id, assetRequestDTO, file, email);
+        Map<String,Object> res = Map.of("data", updatedAsset);
+        return ResponseEntity.ok(res);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+}
 
 
     @Operation(summary = "Inactive asset by asset_id")
@@ -191,17 +151,7 @@ public class AssetController {
     @Operation(summary = "Upload asset image")
     @PutMapping("/{id}/upload-image")
     public ResponseEntity<?> uploadAssetImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        Asset asset = assetRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Asset not found"));
-
-        // Upload image and delete old one
-        Map<String, String> uploadResult = assetService.uploadAssetImage(file, asset);
-
-        // Update asset with new image URL and public ID
-        asset.setImageUrl(uploadResult.get("imageUrl"));
-        asset.setImagePublicId(uploadResult.get("publicId"));
-        assetRepository.save(asset);
-
+        Map<String, String> uploadResult = assetService.updateAssetImage(id, file);
         return ResponseEntity.ok(Map.of("imageUrl", uploadResult.get("imageUrl")));
     }
 
@@ -233,8 +183,12 @@ public class AssetController {
             @RequestBody MarkStolenRequestDTO request,
             Authentication authentication) {
         String reportedBy = authentication.getName();
-        assetService.markAssetAsStolen(id, reportedBy, request.getNotes());
-        return ResponseEntity.ok(Map.of("message", "Asset marked as stolen"));
+        try {
+            assetService.markAssetAsStolen(id, reportedBy, request.getNotes());
+            return ResponseEntity.ok(Map.of("message", "Asset marked as stolen"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}/mark-disposed")
@@ -244,8 +198,12 @@ public class AssetController {
             @RequestBody MarkDisposedRequestDTO request,
             Authentication authentication) {
         String disposedBy = authentication.getName();
-        assetService.markAssetAsDisposed(id, disposedBy, request.getNotes());
-        return ResponseEntity.ok(Map.of("message", "Asset marked as disposed"));
+        try {
+            assetService.markAssetAsDisposed(id, disposedBy, request.getNotes());
+            return ResponseEntity.ok(Map.of("message", "Asset marked as disposed"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/assignment-history/export")
