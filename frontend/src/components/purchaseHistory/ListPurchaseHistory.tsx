@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { purchaseHistoryApi, PurchaseHistory, PurchaseHistoryResponse } from '../../api/purchaseHistory.api';
 import { assetApi } from '../../api/asset.api';
@@ -17,6 +17,7 @@ const ListPurchaseHistory: React.FC = () => {
   const [assetId, setAssetId] = useState<number | undefined>();
   const [assets, setAssets] = useState<{ id: number; name: string }[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -27,16 +28,28 @@ const ListPurchaseHistory: React.FC = () => {
     }
   }, []);
 
-  const fetchData = useCallback(async () => { 
+  const fetchData = useCallback(async () => {
+    // Abort previous request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setLoading(true);
     setError(null);
     try {
-      const response: PurchaseHistoryResponse = await purchaseHistoryApi.getPurchaseHistories({ page:page-1, limit, assetId});
+      const response: PurchaseHistoryResponse = await purchaseHistoryApi.getPurchaseHistories(
+        { page: page-1, limit, assetId },
+        controller.signal
+      );
       setPurchaseHistories(response.content);
       setTotal(response.totalElements);
       setTotalCurrentValue(response.totalCurrentValue);
-      console.log(response);
     } catch (err: any) {
+      if (err.name === 'CanceledError' || err.name === 'AbortError') {
+        // Request was aborted, do nothing
+        return;
+      }
       setError(err.message || 'Failed to fetch purchase histories');
     } finally {
       setLoading(false);
@@ -50,6 +63,14 @@ const ListPurchaseHistory: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // const handleStatusToggle = async (id: number, currentStatus: string) => {
   //   const isInactive = currentStatus === 'INACTIVE';
@@ -76,10 +97,6 @@ const ListPurchaseHistory: React.FC = () => {
       setDownloading(false);
     }
   };
-
-  if (loading && purchaseHistories.length === 0) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  }
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-8 overflow-x-hidden w-full">
@@ -141,8 +158,19 @@ const ListPurchaseHistory: React.FC = () => {
           </button>
         </div>
 
+        {/* Loader above table */}
+        {loading && (
+          <div className="flex items-center justify-center py-4">
+            <svg className="animate-spin h-6 w-6 text-primary mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-primary font-medium">Loading...</span>
+          </div>
+        )}
+
         {/* Desktop Table View */}
-        <div className="hidden lg:block bg-white rounded-lg shadow overflow-x-auto w-full">
+        <div className={`hidden lg:block bg-white rounded-lg shadow overflow-x-auto w-full ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -222,7 +250,7 @@ const ListPurchaseHistory: React.FC = () => {
         </div>
 
         {/* Mobile Card View */}
-        <div className="lg:hidden space-y-4 w-full">
+        <div className={`lg:hidden space-y-4 w-full ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
           {purchaseHistories.map((history) => (
             <div key={history.id} className="bg-white rounded-lg shadow p-4 w-full">
               <div className="flex justify-between items-start mb-3 w-full">

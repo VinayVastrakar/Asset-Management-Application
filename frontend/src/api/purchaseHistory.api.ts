@@ -36,8 +36,8 @@ export interface PurchaseHistoryQueryParams {
 }
 
 export const purchaseHistoryApi = {
-  getPurchaseHistories: async (params: PurchaseHistoryQueryParams) => {
-    const response = await api.get<PurchaseHistoryResponse>('/api/purchase-history', { params });
+  getPurchaseHistories: async (params: PurchaseHistoryQueryParams, signal?: AbortSignal) => {
+    const response = await api.get<PurchaseHistoryResponse>('/api/purchase-history', { params, signal });
     return response.data;
   },
 

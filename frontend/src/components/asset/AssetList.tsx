@@ -29,6 +29,8 @@ const AssetList: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [exportLoading, setExportLoading] = useState(false);
   const navigate = useNavigate();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [pageDirection, setPageDirection] = useState<'next' | 'prev'>('next');
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -123,6 +125,15 @@ const AssetList: React.FC = () => {
 
   const totalPages = Math.ceil(totalItems / limit);
 
+  const handlePageChange = (newPage: number) => {
+    setPageDirection(newPage > page ? 'next' : 'prev');
+    setIsAnimating(true);
+    setTimeout(() => {
+      setPage(newPage);
+      setIsAnimating(false);
+    }, 300); // Match the transition duration
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
@@ -214,7 +225,15 @@ const AssetList: React.FC = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody
+              className={`bg-white divide-y divide-gray-200 transition-all duration-300 ${
+                isAnimating
+                  ? pageDirection === 'next'
+                    ? 'opacity-0 -translate-y-4 pointer-events-none'
+                    : 'opacity-0 translate-y-4 pointer-events-none'
+                  : 'opacity-100 translate-y-0'
+              }`}
+            >
               {assets.length === 0 ? (
                 <tr>
                   <td colSpan={headers.length} className="px-6 py-4 text-center text-gray-500">
@@ -284,16 +303,16 @@ const AssetList: React.FC = () => {
       {/* Pagination */}
       <div className="flex justify-end mt-4 space-x-2">
         <button
-          disabled={page === 0}
-          onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+          disabled={page === 0 || isAnimating}
+          onClick={() => handlePageChange(Math.max(page - 1, 0))}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Prev
         </button>
         <span className="px-3 py-1">Page {page + 1} of {totalPages}</span>
         <button
-          disabled={page + 1 >= totalPages}
-          onClick={() => setPage((prev) => prev + 1)}
+          disabled={page + 1 >= totalPages || isAnimating}
+          onClick={() => handlePageChange(page + 1)}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Next

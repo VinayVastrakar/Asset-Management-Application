@@ -63,7 +63,7 @@ public class PurchaseHistoryService {
         double totalCurrentValue = content.stream()
                 .mapToDouble(dto -> dto.getCurrentValue() != null ? dto.getCurrentValue() : 0.0)
                 .sum();
-        
+                System.out.println("api calling ");
         return PurchaseHistoryPageResponse.builder()
                 .content(content)
                 .pageNumber(purchaseHistoryPage.getNumber())
@@ -90,7 +90,7 @@ public class PurchaseHistoryService {
         double totalCurrentValue = content.stream()
                 .mapToDouble(dto -> dto.getCurrentValue() != null ? dto.getCurrentValue() : 0.0)
                 .sum();
-        
+        System.out.println("api calling ");
         return PurchaseHistoryPageResponse.builder()
                 .content(content)
                 .pageNumber(purchaseHistoryPage.getNumber())
